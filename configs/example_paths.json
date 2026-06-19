@@ -1,0 +1,18 @@
+{
+  "cluster_sims": {
+    "base_path": "/cosma8/data/dp203/bl267/Data/ClusterSims/L302_N1136_GR",
+    "mg_root": "/cosma8/data/dp203/dc-wang17/MG_global",
+    "output_root": "/cosma/home/dp203/dc-wang17/IA_analysis"
+  },
+  "tng": {
+    "base_path": "/cosma8/data/dp203/dc-wang17/TNG/tng_data",
+    "sim_name": "TNG300-1",
+    "cache_dir": null
+  },
+  "environment": {
+    "TNG_API_KEY": "set outside this file",
+    "TNG_SIM_NAME": "TNG300-1",
+    "TNG_CACHE_DIR": "optional"
+  }
+}
+

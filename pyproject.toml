@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ia-analysis"
+version = "0.1.0"
+description = "Intrinsic-alignment, shape-tide, and halo-dynamics analysis utilities."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+  { name = "MSTA contributors" }
+]
+dependencies = [
+  "numpy",
+  "scipy",
+  "h5py",
+  "numba",
+  "matplotlib",
+  "seaborn",
+  "pandas",
+  "tqdm",
+  "psutil"
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+cosma = ["pyccl"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"

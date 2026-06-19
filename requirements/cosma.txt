@@ -1,0 +1,9 @@
+# HPC/COSMA-oriented dependencies.
+# Some packages may require site-specific modules or non-PyPI installation.
+-r core.txt
+pyccl
+MAS_library
+Pk_library
+illustris_python
+halotools
+
