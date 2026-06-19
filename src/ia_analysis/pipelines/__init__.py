@@ -12,4 +12,32 @@ Provides
 - Thin orchestration layers that keep low-level math in domain packages.
 """
 
+from __future__ import annotations
 
+from typing import Any
+
+from ia_analysis._lazy_imports import ExportMap, load_export
+
+_EXPORTS: ExportMap = {
+    "PipelineEntrypoint": ("ia_analysis.pipelines.api", "PipelineEntrypoint"),
+    "list_pipelines": ("ia_analysis.pipelines.api", "list_pipelines"),
+    "describe_pipelines": ("ia_analysis.pipelines.api", "describe_pipelines"),
+    "get_pipeline": ("ia_analysis.pipelines.api", "get_pipeline"),
+    "pipeline_module": ("ia_analysis.pipelines.api", "pipeline_module"),
+    "pipeline_command": ("ia_analysis.pipelines.api", "pipeline_command"),
+}
+
+__all__ = [
+    *list(_EXPORTS),
+    "api",
+    "global_cs",
+    "global_tng",
+    "run_cs",
+    "run_tng",
+    "tng_layered_shape_tide",
+]
+
+
+def __getattr__(name: str) -> Any:
+    """Resolve public pipeline registry helpers lazily."""
+    return load_export(_EXPORTS, name)

@@ -20,10 +20,15 @@ import sys
 def test_subpackage_smoke_imports():
     for name in [
         "ia_analysis",
+        "ia_analysis.api",
         "ia_analysis.catalogs",
+        "ia_analysis.catalogs.api",
         "ia_analysis.shapes",
+        "ia_analysis.shapes.api",
         "ia_analysis.tides",
+        "ia_analysis.tides.api",
         "ia_analysis.dynamics",
+        "ia_analysis.dynamics.api",
         "ia_analysis.meshes",
         "ia_analysis.meshes.CatMesh",
         "ia_analysis.meshes.SnapMesh",
@@ -33,9 +38,13 @@ def test_subpackage_smoke_imports():
         "ia_analysis.spectra.catalog_mesh",
         "ia_analysis.spectra.snapshot_mesh",
         "ia_analysis.covariance",
+        "ia_analysis.covariance.api",
         "ia_analysis.pipelines",
+        "ia_analysis.pipelines.api",
         "ia_analysis.orbits",
+        "ia_analysis.orbits.api",
         "ia_analysis.visualization",
+        "ia_analysis.visualization.api",
         "ia_analysis.visualization.color_tools",
         "ia_analysis.visualization.projection_geometry",
         "ia_analysis.visualization.shell_plots",
@@ -55,6 +64,23 @@ def test_shape_package_imports():
     shape = importlib.import_module("ia_analysis.shapes.shape")
     assert hasattr(shape, "ShapeKin")
     assert hasattr(shape, "compute_axis")
+
+
+def test_structured_api_registries_are_lightweight_and_discoverable():
+    api = importlib.import_module("ia_analysis.api")
+    assert "catalogs" in api.available_domains()
+    assert api.load_domain_api("pipelines").pipeline_module("cs-global") == "ia_analysis.pipelines.run_cs"
+
+    catalogs = importlib.import_module("ia_analysis.catalogs.api")
+    ordered = catalogs.sort_hdf5_chunks(["snap_099.10.hdf5", "snap_099.2.hdf5", "snap_099.0.hdf5"])
+    assert ordered == ["snap_099.0.hdf5", "snap_099.2.hdf5", "snap_099.10.hdf5"]
+
+    pipelines = importlib.import_module("ia_analysis.pipelines")
+    assert pipelines.pipeline_command("tng-layered") == ("python", "-m", "ia_analysis.pipelines.tng_layered_shape_tide")
+
+    visualization = importlib.import_module("ia_analysis.visualization.api")
+    assert "alignment_plots" in visualization.available_groups()
+    assert "plot_alignment_suite" in visualization.group_exports("alignment_plots")
 
 
 def test_package_run_cs_help():

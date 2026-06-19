@@ -11,6 +11,7 @@ Provides
 - A quick check that catalog utilities remain importable in minimal test runs.
 """
 
+from ia_analysis.catalogs.api import sort_hdf5_chunks
 from ia_analysis.catalogs.catalog_loader import _hdf5_chunk_sort_key
 
 
@@ -28,4 +29,9 @@ def test_hdf5_chunk_sort_is_numeric():
         "groups_021.2.hdf5",
         "groups_021.10.hdf5",
     ]
+
+
+def test_catalog_api_chunk_sort_matches_legacy_helper():
+    files = ["snap_099.11.hdf5", "snap_099.3.hdf5", "snap_099.0.hdf5"]
+    assert sort_hdf5_chunks(files) == sorted(files, key=_hdf5_chunk_sort_key)
 

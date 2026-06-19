@@ -12,8 +12,26 @@ Provides
 - IA ellipticity/projection helpers used by mesh construction and spectra.
 """
 
+from __future__ import annotations
 
-from .shape import ShapeKin, I_iters, compute_axis
+from typing import Any
 
-__all__ = ["ShapeKin", "I_iters", "compute_axis"]
+from ia_analysis._lazy_imports import ExportMap, load_export
+
+_EXPORTS: ExportMap = {
+    "ShapeKin": ("ia_analysis.shapes.api", "ShapeKin"),
+    "I_iters": ("ia_analysis.shapes.api", "I_iters"),
+    "compute_axis": ("ia_analysis.shapes.api", "compute_axis"),
+    "measure_iterative_shape": ("ia_analysis.shapes.api", "measure_iterative_shape"),
+    "measure_principal_axes": ("ia_analysis.shapes.api", "measure_principal_axes"),
+    "project_shape_ellipticity": ("ia_analysis.shapes.api", "project_shape_ellipticity"),
+    "project_spin_ellipticity": ("ia_analysis.shapes.api", "project_spin_ellipticity"),
+}
+
+__all__ = [*list(_EXPORTS), "api", "shape", "Iana"]
+
+
+def __getattr__(name: str) -> Any:
+    """Resolve public shape helpers lazily from the structured API facade."""
+    return load_export(_EXPORTS, name)
 

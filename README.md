@@ -20,6 +20,11 @@ repository-root Python compatibility wrappers are intentionally not shipped.
 - `src/ia_analysis/visualization`: plotting and animation helpers.
 - `src/ia_analysis/notebook_pipelines`: generated exports from raw notebooks.
 
+Each non-spectra domain now exposes a structured `api.py` facade for simpler
+imports.  For example, use `ia_analysis.shapes.measure_iterative_shape`,
+`ia_analysis.tides.build_tidal_grid`, or
+`ia_analysis.pipelines.pipeline_command` in new scripts.
+
 ## Usage
 
 Package-style commands are used after installing the package or setting
@@ -47,6 +52,7 @@ some are not always available from standard PyPI indexes.
 ## Documentation
 
 - `docs/architecture.md`: module boundaries and dependency direction.
+- `docs/api_facades.md`: recommended structured import paths.
 - `docs/running.md`: CLI entrypoints, configuration, and environment variables.
 - `docs/visualization.md`: structured visualization module map.
 - `docs/velocity_divergence_self_folding.md`: velocity-divergence folding decision and `tm` proxy.

@@ -20,3 +20,5 @@ matplotlib are imported only by the submodules that actually need them.
 
 __version__ = "0.1.0"
 
+__all__ = ["__version__"]
+

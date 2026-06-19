@@ -13,6 +13,7 @@ Provides
 
 import numpy as np
 
+from ia_analysis.shapes.api import measure_iterative_shape
 from ia_analysis.shapes.shape import I_iters, compute_axis
 
 
@@ -33,3 +34,21 @@ def test_shape_tensor_axes_from_synthetic_cloud():
     assert np.all(np.isfinite([axes["a"], axes["b"], axes["c"]]))
     assert all(np.asarray(vecs[k]).shape == (3,) for k in ("e1", "e2", "e3"))
     assert axes["a"] >= axes["b"] >= axes["c"]
+
+
+def test_shape_api_returns_named_tensor_axis_payload():
+    particles = np.array(
+        [
+            [-1.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, -0.5, 0.0],
+            [0.0, 0.5, 0.0],
+            [0.0, 0.0, -0.25],
+            [0.0, 0.0, 0.25],
+        ],
+        dtype=float,
+    )
+    payload = measure_iterative_shape(particles, percentile=100.0, max_iter=4, tol=1e-8)
+    assert set(payload) == {"tensor", "axes", "vectors"}
+    assert payload["tensor"].shape == (3, 3)
+    assert payload["axes"]["a"] >= payload["axes"]["b"] >= payload["axes"]["c"]
