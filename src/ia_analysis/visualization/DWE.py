@@ -1,6 +1,17 @@
-r"""
-Enhanced Dimroth-Watson distribution class with fitting capabilities
+"""Enhanced Dimroth-Watson distribution implementation.
+
+Purpose
+-------
+This module implements the Dimroth-Watson angular distribution used to fit and
+visualize alignment-angle histograms.
+
+Provides
+--------
+- A scipy-compatible continuous distribution class.
+- Probability density, cumulative distribution, sampling, and fitting helpers.
+- Numerical utilities for stable concentration-parameter evaluation.
 """
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np

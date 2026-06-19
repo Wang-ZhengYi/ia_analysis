@@ -1,3 +1,16 @@
+"""Numerical smoke tests for shape-tensor utilities.
+
+Purpose
+-------
+These tests use synthetic particle distributions to verify that the shape module
+returns finite tensors, axes, and axis-ratio outputs.
+
+Provides
+--------
+- Basic coverage for inertia tensor measurement.
+- Sanity checks for axis extraction and shape output structure.
+"""
+
 import numpy as np
 
 from ia_analysis.shapes.shape import I_iters, compute_axis

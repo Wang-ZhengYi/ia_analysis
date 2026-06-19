@@ -1,16 +1,5 @@
 # Running
 
-## Legacy Entrypoints
-
-Run these from the repository root:
-
-```bash
-python run_cs.py --help
-python run_tng.py --help
-python ia_pk_cs.py --help
-python Cov.py --help
-```
-
 ## Package Entrypoints
 
 After installing the package, or when `PYTHONPATH=src` is set:
@@ -34,4 +23,3 @@ by the TNG loader:
 
 Prefer passing data paths through CLI flags or environment variables rather than
 editing source files.
-

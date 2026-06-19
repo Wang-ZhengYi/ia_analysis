@@ -1,6 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""Batch driver for self-folded IA power-spectrum production.
+
+Purpose
+-------
+This module coordinates repeated folded-mesh and power-spectrum measurements
+across sample selections, fold factors, and output products.
+
+Provides
+--------
+- Command-line batching around the catalog mesh and power-spectrum modules.
+- Reusable fold/sample loops for ClusterSims power-spectrum jobs.
+- Output naming and bookkeeping for large production runs.
+
+Notes
+-----
+The module is an orchestration layer inside the spectra package.  It should not
+own low-level mesh painting or power-spectrum math.
+"""
+
 from pathlib import Path
 import argparse
 import sys

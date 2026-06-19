@@ -1,6 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""Real-space intrinsic-alignment correlation pipeline.
+
+Purpose
+-------
+This module measures galaxy clustering and IA correlation functions from
+ClusterSims-style catalogs, including jackknife covariance estimates.
+
+Provides
+--------
+- Command-line parsing for correlation-function runs.
+- Sample selection and catalog field preparation.
+- Halotools-based pair counting for density-shape and shape-shape statistics.
+- HDF5 output for correlation measurements and covariance products.
+
+Notes
+-----
+The heavy correlation backend is imported only after the fast ``--help`` path so
+basic command discovery works in lightweight environments.
+"""
+
 import argparse
 import time
 import sys

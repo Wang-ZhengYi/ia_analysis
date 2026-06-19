@@ -1,3 +1,24 @@
+"""Potential-field gridding and tidal tensor construction.
+
+Purpose
+-------
+This module converts particle or mass samples into gridded potential and tidal
+fields, then interpolates tidal tensors back to halo or galaxy positions.
+
+Provides
+--------
+- Numba-accelerated Cloud-In-Cell mass assignment.
+- Fourier-space potential and tidal tensor solvers.
+- Acceleration-derived tidal tensor support with consistent sign conventions.
+- Regular-grid interpolation utilities for downstream catalog pipelines.
+
+Notes
+-----
+The public builders use a shared ``legacy_tidal_sign`` option so mass-derived,
+potential-derived, and acceleration-derived tensors can be compared with the
+same convention.
+"""
+
 import numpy as np
 from scipy.fft import fftn, ifftn, fftfreq
 from scipy.interpolate import RegularGridInterpolator

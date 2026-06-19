@@ -1,3 +1,16 @@
+"""Numerical smoke tests for tidal-field construction.
+
+Purpose
+-------
+These tests exercise small synthetic grids to verify that tidal tensor outputs
+are finite, shaped correctly, and symmetric where expected.
+
+Provides
+--------
+- Lightweight coverage for the tidal-field module.
+- Regression checks that avoid real simulation data dependencies.
+"""
+
 import numpy as np
 
 

@@ -1,4 +1,17 @@
-"""Alignment plot specifications, profiles, grids, and figure suites."""
+"""Alignment plotting facade for profiles, grids, and figure suites.
+
+Purpose
+-------
+This module exposes the high-level plotting API for IA alignment figures while
+hiding the historical implementation layout behind lazy imports.
+
+Provides
+--------
+- Alignment specification lookup and chapter listing.
+- Binned profile calculation and axis formatting helpers.
+- Snapshot grids, redshift evolution plots, pair plots, and suite runners.
+"""
+
 
 from __future__ import annotations
 

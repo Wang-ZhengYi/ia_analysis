@@ -1,20 +1,24 @@
-"""Plotting, animation, and visualization helpers.
+"""Visualization namespace for plotting, animation, and figure utilities.
 
-This namespace is split into lightweight facade modules:
+Purpose
+-------
+The visualization package is split into lightweight facade modules with clear
+responsibilities, while preserving access to older implementation modules used
+by notebooks.
 
-- ``color_tools`` for palettes and color extraction.
-- ``projection_geometry`` for principal-plane projections and scale bars.
-- ``scene3d`` for 3D scatter and galaxy-system scenes.
-- ``shell_plots`` for radial and binding shell panels.
-- ``alignment_catalogs`` for MAset loading and population masks.
-- ``alignment_metrics`` for vector/tensor alignment diagnostics.
-- ``alignment_plots`` for alignment figures and paper suites.
-- ``orbit_animation`` for orbit movies and previews.
-- ``distribution_fits`` for probability models used by plots.
-- ``parallel_alignment`` for parallel grid-generation CLIs.
+Provides
+--------
+- Color, projection, shell-plot, alignment, orbit-animation, and distribution
+  helper modules.
+- Lazy facade imports so package import does not immediately require plotting
+  libraries.
 
-Legacy modules such as ``arts`` and ``arts_IA`` remain importable.
+Notes
+-----
+Prefer the structured facade modules for new code.  Historical modules such as
+``arts`` and ``arts_IA`` remain available for compatibility inside ``src``.
 """
+
 
 __all__ = [
     "alignment_catalogs",

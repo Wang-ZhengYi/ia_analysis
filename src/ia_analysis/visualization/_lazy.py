@@ -1,4 +1,21 @@
-"""Small lazy-export helpers for visualization facade modules."""
+"""Lazy export helpers for visualization facade modules.
+
+Purpose
+-------
+This internal module keeps visualization imports lightweight by loading heavy
+legacy plotting modules only when a facade function or class is actually used.
+
+Provides
+--------
+- Attribute loading by export map.
+- Function-call forwarding for small compatibility facades.
+
+Notes
+-----
+The helpers intentionally avoid importing matplotlib, seaborn, scipy, or other
+plotting dependencies at package import time.
+"""
+
 
 from __future__ import annotations
 

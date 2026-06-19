@@ -3,8 +3,8 @@
 Structured Python package for intrinsic-alignment, shape-tide, halo dynamics,
 and power-spectrum analysis on ClusterSims and IllustrisTNG-style data.
 
-The importable package is `ia_analysis`. Legacy root-level modules such as
-`shape.py`, `run_cs.py`, and `CatMesh.py` are retained as compatibility wrappers.
+The importable package is `ia_analysis`. Source code lives under `src/`;
+repository-root Python compatibility wrappers are intentionally not shipped.
 
 ## Layout
 
@@ -22,19 +22,14 @@ The importable package is `ia_analysis`. Legacy root-level modules such as
 
 ## Usage
 
-Legacy commands still work from the repository root:
-
-```bash
-python run_cs.py --help
-python run_tng.py --help
-```
-
-New package-style commands are preferred after installing the package or setting
+Package-style commands are used after installing the package or setting
 `PYTHONPATH=src`:
 
 ```bash
 python -m ia_analysis.pipelines.run_cs --help
 python -m ia_analysis.pipelines.run_tng --help
+python -m ia_analysis.spectra.ia_pk_cs --help
+python -m ia_analysis.covariance.Cov --help
 ```
 
 ## Dependencies
@@ -58,10 +53,10 @@ some are not always available from standard PyPI indexes.
 - `docs/notebook_exports.md`: generated map from raw notebooks to exported Python scripts.
 - `docs/notebook_pipeline_map.md`: raw notebooks, curated notebooks, and module mapping.
 - `configs/example_paths.json`: example local/COSMA path configuration.
-- `notebooks/README.md`: archived notebook inventory.
+- `notebooks/pipelines`: maintained workflow notebooks with English Markdown notes.
 
 ## Notebooks
 
-Raw notebooks are archived under `notebooks/raw_20260618`. Their code cells are
-exported to `src/ia_analysis/notebook_pipelines/exports` for review and future
-refactoring. Maintained workflow notebooks live under `notebooks/pipelines`.
+Maintained workflow notebooks live under `notebooks/pipelines`. Code exported
+from raw analysis notebooks is kept under `src/ia_analysis/notebook_pipelines`
+for review and gradual refactoring into reusable modules.

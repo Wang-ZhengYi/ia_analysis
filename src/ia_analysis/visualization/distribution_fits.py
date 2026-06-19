@@ -1,4 +1,17 @@
-"""Distribution models and fitting helpers used by visualization routines."""
+"""Distribution-fitting facade for visualization diagnostics.
+
+Purpose
+-------
+This module exposes probability distribution models used by alignment and angle
+histogram plots without importing the heavier plotting stack at package import
+time.
+
+Provides
+--------
+- Lazy access to the enhanced Dimroth-Watson distribution class.
+- A stable import path for future distribution models used by figures.
+"""
+
 
 from __future__ import annotations
 

@@ -1,4 +1,17 @@
-"""3D scatter, galaxy-system, and animation-oriented scene helpers."""
+"""3D scene facade for galaxy-system visual diagnostics.
+
+Purpose
+-------
+This module groups 3D scatter, animated camera, galaxy-system, and clustering
+scene helpers behind a lightweight import path.
+
+Provides
+--------
+- Lazy access to 3D scatter plotting.
+- Lazy access to galaxy-system visualization.
+- Access to the historical 2D k-means helper used by scene construction.
+"""
+
 
 from __future__ import annotations
 

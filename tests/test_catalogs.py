@@ -1,3 +1,16 @@
+"""Smoke and behavior tests for catalog-loading utilities.
+
+Purpose
+-------
+These tests verify lightweight catalog helper behavior without requiring real
+ClusterSims or TNG data products.
+
+Provides
+--------
+- Regression coverage for numeric HDF5 chunk sorting.
+- A quick check that catalog utilities remain importable in minimal test runs.
+"""
+
 from ia_analysis.catalogs.catalog_loader import _hdf5_chunk_sort_key
 
 

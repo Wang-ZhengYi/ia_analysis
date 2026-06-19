@@ -1,4 +1,17 @@
-"""Orbit animation and preview entrypoints."""
+"""Orbit animation facade for movie and frame-preview workflows.
+
+Purpose
+-------
+This module gives notebooks and scripts a stable import path for orbit movie
+creation while keeping the historical implementations lazy-loaded.
+
+Provides
+--------
+- Six-panel and three-panel orbit movie entrypoints.
+- Interactive-style orbit animation generation.
+- Single-frame preview helpers for visual quality checks.
+"""
+
 
 from __future__ import annotations
 

@@ -1,3 +1,17 @@
+"""Package-structure and command-entrypoint smoke tests.
+
+Purpose
+-------
+These tests ensure the structured package imports cleanly, public namespaces are
+available, and lightweight CLI help paths keep working without full HPC data.
+
+Provides
+--------
+- Smoke imports for every major subpackage and facade module.
+- Package-style command help checks.
+- Basic velocity-momentum helper coverage.
+"""
+
 import importlib
 import subprocess
 import sys
@@ -37,15 +51,15 @@ def test_subpackage_smoke_imports():
         importlib.import_module(name)
 
 
-def test_legacy_shape_wrapper_imports():
-    shape = importlib.import_module("shape")
+def test_shape_package_imports():
+    shape = importlib.import_module("ia_analysis.shapes.shape")
     assert hasattr(shape, "ShapeKin")
     assert hasattr(shape, "compute_axis")
 
 
-def test_legacy_run_cs_help():
+def test_package_run_cs_help():
     proc = subprocess.run(
-        [sys.executable, "run_cs.py", "--help"],
+        [sys.executable, "-m", "ia_analysis.pipelines.run_cs", "--help"],
         check=False,
         capture_output=True,
         text=True,

@@ -1,6 +1,26 @@
 
 
 
+"""Synthetic halo and NFW point-cloud generation helpers.
+
+Purpose
+-------
+This module creates controlled mock halos for testing shape measurements,
+visualization routines, and orbit-analysis demonstrations without requiring a
+large simulation snapshot.
+
+Provides
+--------
+- Sampling from simple NFW-like radial distributions.
+- Transformations that stretch and rotate point clouds into ellipsoids.
+- Convenience helpers for building toy halos with known geometry.
+
+Notes
+-----
+The routines are intended for experiments and validation, not for replacing the
+catalog loaders used by production ClusterSims or TNG analyses.
+"""
+
 import numpy as np
 
 def gen_nfw(rs=1.0, size=1000, r_min=0.01, r_max=10.0):

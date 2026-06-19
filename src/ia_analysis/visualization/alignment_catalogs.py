@@ -1,4 +1,18 @@
-"""Alignment catalog loading, field access, and population masks."""
+"""Alignment catalog loading and sample-selection facade.
+
+Purpose
+-------
+This module exposes catalog access, field fallback, flag labeling, and
+population-mask helpers used by alignment visualization workflows.
+
+Provides
+--------
+- Lazy access to MAset and MArenew loaders.
+- Convenience aliases with clearer names for context configuration and legacy
+  pickle loading.
+- Population and range-mask helpers for figure pipelines.
+"""
+
 
 from __future__ import annotations
 

@@ -1,4 +1,17 @@
-"""Projection bases, principal-plane coordinates, ellipses, and scale bars."""
+"""Projection-geometry facade for principal-plane visualizations.
+
+Purpose
+-------
+This module collects helpers that turn 3D point clouds into 2D principal-plane
+coordinates and plot-friendly geometric overlays.
+
+Provides
+--------
+- Principal-plane basis construction.
+- 3D-to-2D projection helpers.
+- Ellipse fitting, shared axis limits, and kpc scale bars.
+"""
+
 
 from __future__ import annotations
 

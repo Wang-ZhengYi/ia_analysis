@@ -20,19 +20,17 @@ is retained as a compatibility layer only.
 
 `visualization` and `orbits` are side modules used by notebooks and experiments.
 
-## Compatibility
+## Public Imports
 
-Root-level files are compatibility wrappers. They make the `src` package
-importable in-place and re-export the new package modules. Existing code such as
-`from shape import ShapeKin` and `python run_cs.py ...` is expected to continue
-working from the repository root.
-
-New code should import from `ia_analysis.*`.
+The repository does not ship root-level Python wrappers.  New code should import
+from `ia_analysis.*` after installing the package or setting `PYTHONPATH=src`.
+Command-line execution should use `python -m ia_analysis.<subpackage>.<module>`.
 
 For mesh construction, prefer `ia_analysis.spectra.CatMesh`,
 `ia_analysis.spectra.SnapMesh`, `ia_analysis.spectra.catalog_mesh`, or
-`ia_analysis.spectra.snapshot_mesh`.  Historical imports through
-`ia_analysis.meshes` still work.
+`ia_analysis.spectra.snapshot_mesh`.  The `ia_analysis.meshes` namespace remains
+inside `src` as a deprecation layer for older notebooks, but no root-level mesh
+wrappers are published.
 
 ## Optional Heavy Dependencies
 

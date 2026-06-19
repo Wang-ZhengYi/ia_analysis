@@ -1,4 +1,16 @@
-"""Radial-shell and binding-energy shell plotting routines."""
+"""Shell-plot facade for radial and binding-energy panels.
+
+Purpose
+-------
+This module provides the preferred import path for visualizing halo shells and
+binding-energy shell decompositions.
+
+Provides
+--------
+- Radial shell plots projected onto principal planes.
+- Binding-shell panel plots with consistent limits, ellipses, and scale bars.
+"""
+
 
 from __future__ import annotations
 

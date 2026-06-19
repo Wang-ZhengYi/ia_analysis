@@ -1,6 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""Parallel galaxy-halo alignment plotting pipeline.
+
+Purpose
+-------
+This module builds large alignment figure grids in parallel, reducing the wall
+time for publication-style scans over model flags, snapshots, and alignment
+axis choices.
+
+Provides
+--------
+- Worker initialization and per-panel fitting helpers.
+- Parallel grid construction for multiple alignment configurations.
+- A command-line entrypoint for batch figure production.
+
+Notes
+-----
+It depends on plotting and fitting libraries and is intended for full analysis
+environments rather than lightweight smoke imports.
+"""
+
 import os
 
 # Prevent BLAS/OpenMP oversubscription before importing numpy/scipy/sklearn

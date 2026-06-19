@@ -1,4 +1,16 @@
-"""Parallel alignment-grid command helpers."""
+"""Parallel alignment-grid facade and command helper.
+
+Purpose
+-------
+This module exposes the parallel galaxy-halo alignment grid builder and its CLI
+main function under a concise structured module name.
+
+Provides
+--------
+- Lazy access to the multiprocessing grid-generation implementation.
+- A stable package path for batch plotting jobs.
+"""
+
 
 from __future__ import annotations
 

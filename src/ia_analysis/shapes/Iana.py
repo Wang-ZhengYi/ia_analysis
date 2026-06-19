@@ -1,7 +1,24 @@
+"""Intrinsic-alignment analysis helpers and plotting-era utilities.
+
+Purpose
+-------
+This module collects IA projection functions, tensor/vector alignment metrics,
+shape-derived ellipticity conversions, and legacy analysis helpers used by
+older notebooks.
+
+Provides
+--------
+- Shape-tensor and spin-vector conversions to projected IA components.
+- Alignment statistics and fitting utilities.
+- Compatibility functions referenced by spectra and visualization modules.
+
+Notes
+-----
+The module still imports several optional analysis libraries because it mirrors
+historical notebook workflows.  New focused functionality should move into
+smaller modules when possible.
 """
-Iana.py
-------------------
-"""
+
 
 import numpy as np
 import matplotlib.pyplot as plt

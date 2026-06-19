@@ -1,35 +1,16 @@
 ﻿ia_analysis publish manifest
-Generated from the curated local project tree.
-Excluded: raw/archive notebooks, cache directories, data products, media outputs.
-File count: 146
+Generated from the curated src-first project tree.
+Excluded: root-level Python wrappers, raw/archive notebooks, cache directories, data products, media outputs, and CI workflow files requiring workflow OAuth scope.
+File count: 113
 
-.github/workflows/smoke.yml
 .gitignore
-_compat.py
-arts.py
-arts_IA.py
-catalog_loader.py
-CatMesh.py
 configs/example_paths.json
-Cov.py
 docs/architecture.md
 docs/notebook_exports.md
 docs/notebook_pipeline_map.md
 docs/running.md
 docs/velocity_divergence_self_folding.md
 docs/visualization.md
-DWE.py
-global_cs.py
-global_tng.py
-halo_dynamics.py
-halo_maker.py
-hd_tng.py
-hd_tng_mea_enriched.py
-hd_tng_patched.py
-ia_corr.py
-ia_pk_cs.py
-ia_pk_folded.py
-Iana.py
 LICENSE
 notebooks/pipelines/00_project_overview_and_paths.ipynb
 notebooks/pipelines/01_global_catalog_generation.ipynb
@@ -39,21 +20,11 @@ notebooks/pipelines/04_power_spectrum_pipeline.ipynb
 notebooks/pipelines/05_correlation_pipeline.ipynb
 notebooks/pipelines/06_tng_dynamics_layered_pipeline.ipynb
 notebooks/pipelines/07_orbits_and_shell_visualization.ipynb
-orbit_nfw.py
-orbit_viz.py
-orbit_viz2.py
-pk_batch_self_folding.py
-plot_GH_alignment_parallel.py
-powers.py
 pyproject.toml
 README.md
 requirements/core.txt
 requirements/cosma.txt
 requirements/dev.txt
-run_cs.py
-run_tng.py
-shape.py
-SnapMesh.py
 src/ia_analysis/__init__.py
 src/ia_analysis/catalogs/__init__.py
 src/ia_analysis/catalogs/catalog_loader.py
@@ -143,9 +114,5 @@ tests/test_catalogs.py
 tests/test_shapes.py
 tests/test_structure.py
 tests/test_tides.py
-theory_nla_pk.py
-tidal_field.py
-tng_layered_shape_tide.py
-TNGCatLoader.py
 tools/create_pipeline_notebooks.py
 tools/export_notebooks.py

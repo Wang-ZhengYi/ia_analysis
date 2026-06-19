@@ -1,4 +1,18 @@
-"""Alignment vectors, tensors, scalar diagnostics, and pairwise metrics."""
+"""Alignment metric facade for vectors, tensors, and scalar diagnostics.
+
+Purpose
+-------
+This module groups tensor-axis extraction, vector normalization, angular
+alignment, tidal-tensor access, and mass/radius diagnostics under one import
+location.
+
+Provides
+--------
+- Shape-shape, vector-shape, and vector-vector alignment metrics.
+- Lazy access to stellar, dark-matter, tidal, radial, velocity, and spin fields.
+- Scalar diagnostics such as stellar mass, halo mass, radius, and baryon ratio.
+"""
+
 
 from __future__ import annotations
 

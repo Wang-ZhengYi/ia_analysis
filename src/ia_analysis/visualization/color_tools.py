@@ -1,4 +1,17 @@
-"""Color palette extraction and indexed-color helpers."""
+"""Color extraction facade for visualization workflows.
+
+Purpose
+-------
+This module provides a small, named entrypoint for palette extraction and
+indexed color-list construction used across figure notebooks.
+
+Provides
+--------
+- Lazy access to dominant-color extraction.
+- Lazy access to the historical indexed color helper.
+- A clearer alias named ``build_indexed_color_list`` for new code.
+"""
+
 
 from __future__ import annotations
 

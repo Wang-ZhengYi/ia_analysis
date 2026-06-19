@@ -1,3 +1,24 @@
+"""General plotting and shell-visualization implementation module.
+
+Purpose
+-------
+This module contains historical plotting utilities used by notebooks and by the
+structured visualization facades.  It focuses on color extraction, 3D scenes,
+radial shells, binding shells, and distribution-style diagnostic plots.
+
+Provides
+--------
+- Color palette extraction and indexed color-list helpers.
+- Galaxy-system and 3D scatter visualizations.
+- Principal-plane projection geometry and ellipsoid overlays.
+- Radial and binding-shell panel plotting functions.
+
+Notes
+-----
+New imports should usually go through the smaller facade modules such as
+``color_tools``, ``projection_geometry``, ``scene3d``, and ``shell_plots``.
+"""
+
 # arts.py
 import numpy as np
 import matplotlib.pyplot as plt

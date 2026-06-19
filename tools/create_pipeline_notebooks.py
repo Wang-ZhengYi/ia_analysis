@@ -1,4 +1,25 @@
-"""Create curated pipeline notebooks from the organized project modules."""
+"""Create curated workflow notebooks for the structured IA analysis project.
+
+Purpose
+-------
+This maintenance script writes the small, human-facing notebooks that live in
+``notebooks/pipelines``.  The notebooks are intentionally lightweight: they
+explain the project workflow, show import and command templates, and point users
+to the reusable package modules under ``src/ia_analysis``.
+
+Provides
+--------
+- A project overview notebook for paths and execution order.
+- Pipeline notebooks for catalog generation, alignment figures, population
+  analysis, spectra, correlations, TNG dynamics, and orbit visualization.
+- English Markdown cells that use dollar-delimited math notation.
+
+Notes
+-----
+The script does not execute science pipelines.  It only regenerates notebook
+JSON files from reproducible templates so the published repository has clean,
+consistent, reviewable documentation notebooks.
+"""
 
 from __future__ import annotations
 
@@ -11,10 +32,12 @@ OUT = ROOT / "notebooks" / "pipelines"
 
 
 def md(source: str) -> dict:
+    """Return a Markdown notebook cell with normalized trailing newline."""
     return {"cell_type": "markdown", "metadata": {}, "source": source.strip() + "\n"}
 
 
 def code(source: str) -> dict:
+    """Return an unexecuted code notebook cell with empty output state."""
     return {
         "cell_type": "code",
         "execution_count": None,
@@ -25,6 +48,7 @@ def code(source: str) -> dict:
 
 
 def write_notebook(name: str, cells: list[dict]) -> None:
+    """Write one notebook file using a minimal Python 3 kernelspec."""
     nb = {
         "cells": cells,
         "metadata": {
@@ -58,6 +82,7 @@ print("Project root:", PROJECT_ROOT)
 
 
 def main() -> None:
+    """Regenerate all curated pipeline notebooks."""
     write_notebook(
         "00_project_overview_and_paths.ipynb",
         [
@@ -65,15 +90,15 @@ def main() -> None:
                 """
 # 00 Project Overview And Paths
 
-这个 notebook 用来确认项目结构、数据路径和输出路径。建议每次开始分析前先运行本 notebook。
+Use this notebook to confirm the repository layout, data locations, and output
+directories before running any analysis workflow.
 
-核心目录：
+Core directories:
 
-- `src/ia_analysis`: 正式 Python 包。
-- `notebooks/raw_20260618`: 原始 notebook 归档。
-- `src/ia_analysis/notebook_pipelines/exports`: 原始 notebook 代码导出的 `.py` 脚本。
-- `notebooks/pipelines`: 新的分主题 pipeline notebook。
-- `configs/example_paths.json`: 路径配置示例。
+- `src/ia_analysis`: importable Python package.
+- `src/ia_analysis/notebook_pipelines/exports`: code exported from raw analysis notebooks for review.
+- `notebooks/pipelines`: maintained workflow notebooks.
+- `configs/example_paths.json`: example path configuration.
 """
             ),
             code(COMMON_SETUP),
@@ -90,16 +115,14 @@ config
             ),
             md(
                 """
-## Pipeline Order
+## Recommended Pipeline Order
 
-推荐顺序：
-
-1. 运行 global catalog pipeline，生成 subhalo 级 HDF5。
-2. 运行 alignment figure pipeline，检查形状和潮汐对齐。
-3. 运行 HOD 和 population pipeline，构造 LRG/ELG 与固定 number density 样本。
-4. 运行 power spectrum pipeline，测量 $P(k)$。
-5. 运行 correlation pipeline，测量 real-space IA 相关函数。
-6. 运行 TNG dynamics pipeline，检查 shell-wise 和 layered shape-tide。
+1. Run a global catalog pipeline to produce a subhalo-level HDF5 table.
+2. Run the alignment figure pipeline to inspect shape and tidal alignments.
+3. Run the HOD and population pipeline to define LRG, ELG, and fixed-density samples.
+4. Run the power-spectrum pipeline to measure $P(k)$ products.
+5. Run the correlation pipeline to measure real-space IA correlation functions.
+6. Run the TNG dynamics pipeline for shell-wise and layered shape-tide diagnostics.
 """
             ),
         ],
@@ -112,23 +135,22 @@ config
                 """
 # 01 Global Catalog Generation
 
-本 notebook 负责 ClusterSims 和 TNG 的 subhalo 级总表生成。产物是 columnar HDF5，后续 alignment、HOD、$P(k)$ 和 correlation pipeline 都以它为输入。
+This notebook documents the ClusterSims and TNG subhalo-level catalog
+generation workflow.  The products are columnar HDF5 files used downstream by
+alignment, HOD, $P(k)$, and correlation measurements.
 """
             ),
             code(COMMON_SETUP),
             code(
                 """
-from ia_analysis.pipelines import run_cs, run_tng
-
-# 这里仅展示命令模板。实际大规模运行建议在 HPC job script 中执行。
 cs_command = (
-    "python run_cs.py "
+    "python -m ia_analysis.pipelines.run_cs "
     "--basepath /path/to/ClusterSims/L302_N1136_GR "
     "--snap 21 --nworker 16 --out outputs/global_cs_GR_s021.hdf5"
 )
 
 tng_command = (
-    "python run_tng.py "
+    "python -m ia_analysis.pipelines.run_tng "
     "--nworker 16 --out outputs/global_tng_s099.hdf5 "
     "--api-key $TNG_API_KEY"
 )
@@ -139,13 +161,13 @@ print(tng_command)
             ),
             md(
                 """
-## Checks
+## Output Checks
 
-生成后建议检查：
+After generation, verify that:
 
-- HDF5 根目录是否有 `SubhaloID`, `GroupID`, `DM`, `Star`, `Tidal_grp`, `Tidal_tot`。
-- `DM/I` 和 `Star/I` 是否为 $N \\times 3 \\times 3$。
-- `Star/cos_err` 是否有限且满足后续筛选阈值。
+- The HDF5 root contains keys such as `SubhaloID`, `GroupID`, `DM`, `Star`, `Tidal_grp`, and `Tidal_tot`.
+- `DM/I` and `Star/I` have shape $N \\times 3 \\times 3$.
+- `Star/cos_err` is finite and compatible with later selection thresholds.
 """
             ),
         ],
@@ -158,39 +180,43 @@ print(tng_command)
                 """
 # 02 Alignment Figure Suite
 
-本 notebook 负责读取 MA 或 MArenew 对齐 catalog，调用 `arts_IA.py` 中的画图 API，生成形状、潮汐、速度和径向方向的对齐图。
+This notebook loads MA or MArenew alignment catalogs and calls the structured
+visualization API to generate shape, tidal, velocity, and radial-alignment
+figures.
 """
             ),
             code(COMMON_SETUP),
             code(
                 """
-from ia_analysis.visualization import arts_IA
+from ia_analysis.visualization import alignment_catalogs, alignment_plots
 
-arts_IA.set_paper_style()
+alignment_plots.configure_paper_style()
 
-# 修改为你的实际 MArenew.pkl 或 HDF5 catalog root。
 MA_PATH = "MArenew.pkl"
 
-# 如果文件存在，可以取消注释：
-# MAset, flags, snap_list = arts_IA.load_marenew_pickle(MA_PATH)
-# arts_IA.set_alignment_context(MAset, flags, arts_IA.ZMAP_ALL, snap_list=snap_list)
-# arts_IA.list_alignment_chapters()
+# Example:
+# MAset, flags, snap_list = alignment_catalogs.load_legacy_alignment_pickle(MA_PATH)
+# alignment_catalogs.configure_alignment_context(MAset, flags, snap_list=snap_list)
+# alignment_plots.list_alignment_chapters()
 """
             ),
             code(
                 """
-# 示例：画某一组 alignment。
-# arts_IA.plot_alignment_pair("star_shape_dm_shape_major", save=True, show=True)
+# Example: plot one alignment specification.
+# alignment_plots.plot_alignment_pair("star_shape_dm_shape_major", save=True, show=True)
 
-# 示例：按 chapter 批量画图。
-# arts_IA.plot_alignment_chapter("shape_shape", save=True, show=False)
+# Example: batch a full chapter.
+# alignment_plots.plot_alignment_chapter("shape_shape", save=True, show=False)
 """
             ),
             md(
                 """
 ## Source Mapping
 
-原始 notebook 中的画图和分析代码已经导出到 `src/ia_analysis/notebook_pipelines/exports`。优先使用 `ia_analysis.visualization.arts_IA` 作为正式 API，导出脚本作为追溯和补充。
+Notebook plotting and analysis code exported from the raw notebooks is stored
+under `src/ia_analysis/notebook_pipelines/exports`.  Prefer the structured
+`ia_analysis.visualization` modules for new work, and use exports as historical
+references when a workflow has not yet been fully refactored.
 """
             ),
         ],
@@ -203,13 +229,13 @@ MA_PATH = "MArenew.pkl"
                 """
 # 03 HOD And Population Pipeline
 
-本 notebook 负责 HOD、LRG/ELG、satellite radial distribution 和 merger population 相关分析。
+This notebook organizes HOD, LRG/ELG, satellite radial-distribution, and merger
+population analyses.
 """
             ),
             code(COMMON_SETUP),
             code(
                 """
-# 相关原始 notebook 代码导出：
 exports = PROJECT_ROOT / "src" / "ia_analysis" / "notebook_pipelines" / "exports"
 for name in [
     "hod_lrg_elg_nb.py",
@@ -225,12 +251,12 @@ for name in [
             ),
             md(
                 """
-## Suggested Pipeline
+## Suggested Workflow
 
-1. 从 global HDF5 或原始 FoF/Subhalo catalog 读取样本。
-2. 按 stellar mass、SFR、central/satellite、host mass 分组。
-3. 生成 HOD 表、satellite radial profiles 和 merger diagnostics。
-4. 输出表格到 `outputs/tables`，输出图片到 `outputs/figures/hod_population`。
+1. Load a sample from a global HDF5 file or from the original FoF/Subhalo catalogs.
+2. Split by stellar mass, SFR, central/satellite status, and host mass.
+3. Produce HOD tables, satellite radial profiles, and merger diagnostics.
+4. Write tables to `outputs/tables` and figures to `outputs/figures/hod_population`.
 """
             ),
         ],
@@ -243,7 +269,8 @@ for name in [
                 """
 # 04 Power Spectrum Pipeline
 
-本 notebook 负责 folded mesh、IA fields、matter density fields 和 $P(k)$ 测量。
+This notebook documents folded mesh construction, IA field generation, matter
+density fields, and $P(k)$ measurement.
 """
             ),
             code(COMMON_SETUP),
@@ -259,9 +286,8 @@ pk_types, spec_keys
             ),
             code(
                 """
-# HPC 命令模板：
 command = (
-    "python ia_pk_cs.py --flag GR --snap 21 "
+    "python -m ia_analysis.spectra.ia_pk_cs --flag GR --snap 21 "
     "--threads 8 --nmesh 512 --folds 1,2,4,8,16,32 "
     "--pk-types full --outdir outputs/pks"
 )
@@ -272,7 +298,9 @@ print(command)
                 """
 ## Outputs
 
-主要输出是 `pks_FLAG_SNAP.hdf5`。每个 sample 下包含 folded spectra、stitched native spectra、stitched target-$k$ spectra 和 noise-corrected spectra。
+The main product is `pks_FLAG_SNAP.hdf5`.  Each sample contains folded spectra,
+stitched native spectra, stitched target-$k$ spectra, and noise-corrected
+spectra where available.
 """
             ),
         ],
@@ -285,15 +313,15 @@ print(command)
                 """
 # 05 Correlation Pipeline
 
-本 notebook 负责 real-space IA correlation，包括 jackknife covariance 和 mass-bin sample。
+This notebook documents real-space IA correlation measurements, including
+jackknife covariance and mass-bin samples.
 """
             ),
             code(COMMON_SETUP),
             code(
                 """
-# 运行模板：
 command = (
-    "python ia_corr.py --flag GR --snap 21 "
+    "python -m ia_analysis.spectra.ia_corr --flag GR --snap 21 "
     "--boxsize 205.0 --nsub 3 --nthreads 8 "
     "--out outputs/cfs/cfs_GR_s021.hdf5"
 )
@@ -304,7 +332,9 @@ print(command)
                 """
 ## Notes
 
-该 pipeline 依赖 `halotools`。如果只需要查看流程，可先阅读 `src/ia_analysis/notebook_pipelines/exports/ia_corr_nb.py` 和 `ia_corr_abundance_nb.py`。
+This pipeline depends on `halotools`.  If you only need to review the workflow,
+read `src/ia_analysis/notebook_pipelines/exports/ia_corr_nb.py` and
+`ia_corr_abundance_nb.py` before running large jobs.
 """
             ),
         ],
@@ -317,25 +347,24 @@ print(command)
                 """
 # 06 TNG Dynamics And Layered Shape-Tide Pipeline
 
-本 notebook 负责 TNG halo dynamics、cross-redshift tracking、layered ellipsoidal shells 和 tidal comparison。
+This notebook covers TNG halo dynamics, cross-redshift tracking, layered
+ellipsoidal shells, and tidal comparisons.
 """
             ),
             code(COMMON_SETUP),
             code(
                 """
+import numpy as np
 from ia_analysis.dynamics import halo_dynamics
 
-# 轻量检查：核心线性代数函数可以直接使用。
-import numpy as np
 M = np.eye(3)
 halo_dynamics.eigh_sorted_desc(M)
 """
             ),
             code(
                 """
-# 大规模 layered TNG 命令模板：
 command = (
-    "python tng_layered_shape_tide.py "
+    "python -m ia_analysis.pipelines.tng_layered_shape_tide "
     "--snap 99 --base /path/to/tng_data "
     "--out outputs/tng_layered_s099.hdf5"
 )
@@ -344,9 +373,11 @@ print(command)
             ),
             md(
                 """
-## Related Raw Notebooks
+## Related Exports
 
-原始流程包括 `hd_tng_crossZ.ipynb`、`hd_tng_plot.ipynb`、`crossz.ipynb` 和 `TNGCatLoader.ipynb`。对应代码已导出到 notebook exports 目录。
+Historical workflows include `hd_tng_crossZ.ipynb`, `hd_tng_plot.ipynb`,
+`crossz.ipynb`, and `TNGCatLoader.ipynb`.  Their code exports are available in
+the notebook exports package for reference.
 """
             ),
         ],
@@ -359,7 +390,8 @@ print(command)
                 """
 # 07 Orbits And Shell Visualization
 
-本 notebook 负责 NFW orbit mock、radial shell plots、binding shell plots 和 3D visual diagnostics。
+This notebook covers NFW orbit mocks, radial shell plots, binding shell plots,
+and 3D visual diagnostics.
 """
             ),
             code(COMMON_SETUP),
@@ -383,7 +415,9 @@ pts.shape, rotated.shape
                 """
 ## Visualization Modules
 
-正式绘图工具位于 `ia_analysis.visualization`。`arts.py` 包含 shell visualization，`orbit_viz.py` 和 `orbit_viz2.py` 负责 orbit movie 和 preview frame。
+Use `ia_analysis.visualization.shell_plots` for radial and binding shell panels,
+`ia_analysis.visualization.orbit_animation` for movies and frame previews, and
+`ia_analysis.visualization.scene3d` for 3D scene helpers.
 """
             ),
         ],
