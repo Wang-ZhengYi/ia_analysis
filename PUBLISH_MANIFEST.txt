@@ -1,10 +1,11 @@
 ﻿ia_analysis publish manifest
 Generated from the curated src-first project tree.
 Excluded: root-level Python wrappers, raw/archive notebooks, cache directories, data products, media outputs, and CI workflow files requiring workflow OAuth scope.
-File count: 113
+File count: 124
 
 .gitignore
 configs/example_paths.json
+docs/api_facades.md
 docs/architecture.md
 docs/notebook_exports.md
 docs/notebook_pipeline_map.md
@@ -26,12 +27,17 @@ requirements/core.txt
 requirements/cosma.txt
 requirements/dev.txt
 src/ia_analysis/__init__.py
+src/ia_analysis/_lazy_imports.py
+src/ia_analysis/api.py
 src/ia_analysis/catalogs/__init__.py
+src/ia_analysis/catalogs/api.py
 src/ia_analysis/catalogs/catalog_loader.py
 src/ia_analysis/catalogs/TNGCatLoader.py
 src/ia_analysis/covariance/__init__.py
+src/ia_analysis/covariance/api.py
 src/ia_analysis/covariance/Cov.py
 src/ia_analysis/dynamics/__init__.py
+src/ia_analysis/dynamics/api.py
 src/ia_analysis/dynamics/halo_dynamics.py
 src/ia_analysis/dynamics/hd_tng.py
 src/ia_analysis/dynamics/hd_tng_mea_enriched.py
@@ -67,15 +73,18 @@ src/ia_analysis/notebook_pipelines/exports/tngcatloader_nb.py
 src/ia_analysis/notebook_pipelines/exports/tngcatloader_test_nb.py
 src/ia_analysis/notebook_pipelines/exports/tri3d_nb.py
 src/ia_analysis/orbits/__init__.py
+src/ia_analysis/orbits/api.py
 src/ia_analysis/orbits/halo_maker.py
 src/ia_analysis/orbits/orbit_nfw.py
 src/ia_analysis/pipelines/__init__.py
+src/ia_analysis/pipelines/api.py
 src/ia_analysis/pipelines/global_cs.py
 src/ia_analysis/pipelines/global_tng.py
 src/ia_analysis/pipelines/run_cs.py
 src/ia_analysis/pipelines/run_tng.py
 src/ia_analysis/pipelines/tng_layered_shape_tide.py
 src/ia_analysis/shapes/__init__.py
+src/ia_analysis/shapes/api.py
 src/ia_analysis/shapes/Iana.py
 src/ia_analysis/shapes/shape.py
 src/ia_analysis/spectra/__init__.py
@@ -91,9 +100,11 @@ src/ia_analysis/spectra/snapshot_mesh.py
 src/ia_analysis/spectra/theory_nla_pk.py
 src/ia_analysis/spectra/velocity_momentum.py
 src/ia_analysis/tides/__init__.py
+src/ia_analysis/tides/api.py
 src/ia_analysis/tides/tidal_field.py
 src/ia_analysis/visualization/__init__.py
 src/ia_analysis/visualization/_lazy.py
+src/ia_analysis/visualization/api.py
 src/ia_analysis/visualization/alignment_catalogs.py
 src/ia_analysis/visualization/alignment_metrics.py
 src/ia_analysis/visualization/alignment_plots.py
