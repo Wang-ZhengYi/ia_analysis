@@ -43,7 +43,14 @@ Halo dynamics:
 
 ```python
 from ia_analysis.dynamics import analyze_particle_halo, compute_tng_halo_sample
+from ia_analysis.dynamics import compute_tng_component_binding_profiles
 ```
+
+`compute_tng_component_binding_profiles` loads gas, dark matter, stars, and any
+requested supported TNG component for one subhalo.  It returns per-component
+mass distributions over positive specific binding energy, with velocities
+measured relative to `SubhaloVel` and gas pressure support included through
+`InternalEnergy` when available.
 
 Merger-tree tracks and cross-time workflows:
 

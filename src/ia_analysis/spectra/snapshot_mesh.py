@@ -8,7 +8,7 @@ Streaming mesh construction for ClusterSims particle snapshots.
 
 This module builds, for one folding factor at a time:
 - delta_mesh : total matter overdensity field from gas + DM + stars
-- theta_mesh : particle velocity-divergence field theta_p = -(∇·v)/(aH)
+- theta_mesh : particle velocity-divergence field theta_p = -div(v)/(aH)
 
 Implementation notes
 --------------------
@@ -27,10 +27,7 @@ from dataclasses import dataclass
 import gc
 
 import numpy as np
-try:
-    import h5py
-except Exception:  # pragma: no cover - optional HDF5 dependency
-    h5py = None
+import h5py
 try:
     import MAS_library as MASL
 except Exception:  # pragma: no cover - optional HPC dependency
@@ -92,11 +89,6 @@ class SnapshotMeshBuilder:
         return H0 * Ez
 
     @staticmethod
-    def _require_hdf5():
-        if h5py is None:
-            raise ImportError("SnapshotMeshBuilder requires h5py to read snapshot files.")
-
-    @staticmethod
     def _require_mas_library():
         if MASL is None:
             raise ImportError("SnapshotMeshBuilder requires MAS_library from Pylians3.")
@@ -127,7 +119,6 @@ class SnapshotMeshBuilder:
         dict
             Always contains delta_mesh. Contains theta_mesh when want_theta=True.
         """
-        self._require_hdf5()
         self._require_mas_library()
 
         mas_use = str(self.cfg.mas) if mas is None else str(mas)

@@ -54,6 +54,7 @@ import numpy as np
 import pandas as pd
 
 from ia_analysis.catalogs.TNGCatLoader import TNGCatalog
+from ia_analysis.dynamics import halo_dynamics as hd_core
 try:
     import halo_dynamics_mea as hd
 except Exception:  # pragma: no cover
@@ -66,6 +67,17 @@ except Exception:  # pragma: no cover
 
 KM_S_PER_KPC_TO_GYR_INV = 1.0227121650537077
 G_KPC_KMS2_MSUN = 4.30091727003628e-6
+TNG_COMPONENT_PTYPES: Dict[str, int] = {
+    "gas": 0,
+    "dm": 1,
+    "dark_matter": 1,
+    "stars": 4,
+    "stellar": 4,
+    "bhs": 5,
+    "bh": 5,
+    "black_holes": 5,
+}
+TNG_PTYPE_COMPONENTS: Dict[int, str] = {0: "gas", 1: "dm", 4: "stars", 5: "bhs"}
 
 DEFAULT_CFG: Dict[str, Any] = {
     "sim_name": "TNG50-1",
@@ -426,6 +438,471 @@ def load_subhalo_dm_particles(
         "ids": ids,
         "potential": potential,
     }
+
+
+def _component_to_ptype(component: Union[str, int]) -> Tuple[str, int]:
+    """Normalize a component name or PartType number to a canonical label."""
+    if isinstance(component, (int, np.integer)):
+        ptype = int(component)
+        if ptype not in TNG_PTYPE_COMPONENTS:
+            raise ValueError(f"Unsupported TNG PartType {ptype}; use one of {sorted(TNG_PTYPE_COMPONENTS)}")
+        return TNG_PTYPE_COMPONENTS[ptype], ptype
+    key = str(component).lower().strip()
+    if key.startswith("parttype"):
+        ptype = int(key.replace("parttype", ""))
+        if ptype not in TNG_PTYPE_COMPONENTS:
+            raise ValueError(f"Unsupported TNG PartType {ptype}; use one of {sorted(TNG_PTYPE_COMPONENTS)}")
+        return TNG_PTYPE_COMPONENTS[ptype], ptype
+    if key not in TNG_COMPONENT_PTYPES:
+        raise ValueError(
+            f"Unknown TNG component '{component}'. "
+            f"Supported names are {sorted(TNG_COMPONENT_PTYPES)}."
+        )
+    ptype = TNG_COMPONENT_PTYPES[key]
+    return TNG_PTYPE_COMPONENTS[ptype], ptype
+
+
+def _load_subhalo_ptype_raw(
+    cat: TNGCatalog,
+    sid: int,
+    *,
+    ptype: int,
+    fields: Sequence[str],
+    optional_fields: Sequence[str],
+    retry_cfg: Mapping[str, Any],
+) -> Mapping[str, np.ndarray]:
+    """
+    Load one subhalo PartType and progressively drop optional fields if absent.
+
+    TNG local files and API cutouts do not always expose the same optional
+    particle fields.  Coordinates, velocities, and masses are treated as
+    required where physically needed; Potential and gas thermodynamic fields are
+    optional for the binding-energy workflow.
+    """
+    requested = list(dict.fromkeys(fields))
+    optional = set(optional_fields)
+    while True:
+        try:
+            pdata = retry_call(cat.loadSubhalos, int(sid), ptypes=[int(ptype)], fields=requested, **dict(retry_cfg))
+            return pdata.get(f"PartType{int(ptype)}", {})
+        except Exception as exc:
+            removable = [name for name in requested if name in optional]
+            if not removable:
+                raise
+            dropped = removable[-1]
+            requested = [name for name in requested if name != dropped]
+            warnings.warn(
+                f"Optional field '{dropped}' could not be read for sid={sid}, "
+                f"PartType{ptype}; retrying without it. Reason: {exc}"
+            )
+
+
+def _mass_msun_for_component(raw: Mapping[str, np.ndarray], ptype: int, n: int, header: Mapping[str, Any]) -> np.ndarray:
+    """Return particle masses in Msun for a TNG component."""
+    if n == 0:
+        return np.zeros(0, dtype=np.float64)
+    h = hubble_from_header(header)
+    if "Masses" in raw:
+        masses = np.asarray(raw["Masses"], dtype=np.float64).reshape(-1)
+        if masses.shape != (n,):
+            raise ValueError(f"Masses for PartType{ptype} have shape {masses.shape}, expected ({n},)")
+        return masses * 1.0e10 / h
+    if int(ptype) == 1:
+        return dm_mass_msun_from_header(header, n)
+    raise KeyError(f"PartType{ptype} requires a Masses field for component mass weighting")
+
+
+def _optional_particle_scalar(raw: Mapping[str, np.ndarray], field: str, n: int) -> Optional[np.ndarray]:
+    """Read an optional one-dimensional particle field if it has the expected length."""
+    if field not in raw:
+        return None
+    arr = np.asarray(raw[field], dtype=np.float64).reshape(-1)
+    if arr.shape != (n,):
+        return None
+    return arr
+
+
+def _empty_component_particles(
+    *,
+    component: str,
+    ptype: int,
+    sid: int,
+    snap: int,
+    center_ckpc_h: np.ndarray,
+    v_ref_raw: np.ndarray,
+) -> Dict[str, Any]:
+    """Return a correctly shaped empty component particle dictionary."""
+    return {
+        "component": component,
+        "ptype": int(ptype),
+        "sid": int(sid),
+        "snap": int(snap),
+        "coords_ckpc_h": np.zeros((0, 3), dtype=np.float64),
+        "vel_code": np.zeros((0, 3), dtype=np.float64),
+        "center_ckpc_h": center_ckpc_h,
+        "v_ref_code": v_ref_raw,
+        "X_kpc": np.zeros((0, 3), dtype=np.float64),
+        "U_kms": np.zeros((0, 3), dtype=np.float64),
+        "masses": np.zeros(0, dtype=np.float64),
+        "ids": np.zeros(0, dtype=np.int64),
+        "potential": None,
+        "internal_energy": None,
+        "pressure": None,
+        "density": None,
+    }
+
+
+def load_subhalo_component_particles(
+    cat: TNGCatalog,
+    subs: Mapping[str, np.ndarray],
+    sid: int,
+    *,
+    component: Union[str, int],
+    snap: int,
+    base_path: Union[str, Path],
+    header: Mapping[str, Any],
+    retry_cfg: Optional[Mapping[str, Any]] = None,
+    include_potential: bool = True,
+    include_gas_pressure: bool = True,
+) -> Dict[str, Any]:
+    """
+    Load one TNG subhalo component in relative physical phase-space units.
+
+    Velocities are always converted to km/s relative to ``SubhaloVel``.  This is
+    the velocity convention used by the binding-energy calculation.  Gas
+    particles include ``InternalEnergy`` when present; optional ``Pressure`` and
+    ``Density`` are also carried through so the array-level dynamics helper can
+    include pressure support if internal energy is unavailable.
+    """
+    retry_cfg = dict(retry_cfg or {})
+    comp_name, ptype = _component_to_ptype(component)
+    center_ckpc_h = np.asarray(subs["SubhaloPos"][int(sid)], dtype=np.float64)
+    v_ref_raw = np.asarray(subs["SubhaloVel"][int(sid)], dtype=np.float64)
+
+    required_fields = ["Coordinates", "Velocities", "ParticleIDs"]
+    if ptype != 1:
+        required_fields.append("Masses")
+    optional_fields: List[str] = []
+    if include_potential:
+        optional_fields.append("Potential")
+    if ptype == 0 and include_gas_pressure:
+        optional_fields.extend(["InternalEnergy", "Pressure", "Density"])
+
+    raw = _load_subhalo_ptype_raw(
+        cat,
+        int(sid),
+        ptype=ptype,
+        fields=[*required_fields, *optional_fields],
+        optional_fields=optional_fields,
+        retry_cfg=retry_cfg,
+    )
+    if "Coordinates" not in raw:
+        return _empty_component_particles(
+            component=comp_name,
+            ptype=ptype,
+            sid=int(sid),
+            snap=int(snap),
+            center_ckpc_h=center_ckpc_h,
+            v_ref_raw=v_ref_raw,
+        )
+
+    coords_raw = np.asarray(raw["Coordinates"], dtype=np.float64)
+    if coords_raw.ndim != 2 or coords_raw.shape[1] != 3 or coords_raw.shape[0] == 0:
+        return _empty_component_particles(
+            component=comp_name,
+            ptype=ptype,
+            sid=int(sid),
+            snap=int(snap),
+            center_ckpc_h=center_ckpc_h,
+            v_ref_raw=v_ref_raw,
+        )
+    n = int(coords_raw.shape[0])
+    vel_raw = np.asarray(raw["Velocities"], dtype=np.float64)
+    if vel_raw.shape != coords_raw.shape:
+        raise ValueError(f"Velocities for {comp_name} sid={sid} do not match Coordinates")
+    ids = np.asarray(raw.get("ParticleIDs", np.arange(n)), dtype=np.int64)
+    if ids.shape != (n,):
+        ids = np.arange(n, dtype=np.int64)
+
+    X_kpc = tng_relative_positions_to_physical_kpc(coords_raw, center_ckpc_h, header)
+    U_kms = tng_velocity_to_kms(vel_raw, header) - tng_velocity_to_kms(v_ref_raw[None, :], header)[0]
+    masses = _mass_msun_for_component(raw, ptype, n, header)
+
+    potential = _optional_particle_scalar(raw, "Potential", n)
+    return {
+        "component": comp_name,
+        "ptype": int(ptype),
+        "sid": int(sid),
+        "snap": int(snap),
+        "coords_ckpc_h": coords_raw,
+        "vel_code": vel_raw,
+        "center_ckpc_h": center_ckpc_h,
+        "v_ref_code": v_ref_raw,
+        "X_kpc": X_kpc,
+        "U_kms": U_kms,
+        "masses": masses,
+        "ids": ids,
+        "potential": potential,
+        "internal_energy": _optional_particle_scalar(raw, "InternalEnergy", n),
+        "pressure": _optional_particle_scalar(raw, "Pressure", n),
+        "density": _optional_particle_scalar(raw, "Density", n),
+    }
+
+
+def load_subhalo_components(
+    cat: TNGCatalog,
+    subs: Mapping[str, np.ndarray],
+    sid: int,
+    *,
+    components: Sequence[Union[str, int]] = ("gas", "dm", "stars"),
+    snap: int,
+    base_path: Union[str, Path],
+    header: Mapping[str, Any],
+    retry_cfg: Optional[Mapping[str, Any]] = None,
+    include_potential: bool = True,
+    include_gas_pressure: bool = True,
+) -> Dict[str, Dict[str, Any]]:
+    """Load several subhalo components into a single component dictionary."""
+    loaded: Dict[str, Dict[str, Any]] = {}
+    for component in components:
+        comp_name, _ = _component_to_ptype(component)
+        loaded[comp_name] = load_subhalo_component_particles(
+            cat,
+            subs,
+            int(sid),
+            component=component,
+            snap=int(snap),
+            base_path=base_path,
+            header=header,
+            retry_cfg=retry_cfg,
+            include_potential=include_potential,
+            include_gas_pressure=include_gas_pressure,
+        )
+    return loaded
+
+
+def load_subhalo_halo_components(*args: Any, **kwargs: Any) -> Dict[str, Dict[str, Any]]:
+    """Compatibility alias for loading all requested subhalo halo components."""
+    return load_subhalo_components(*args, **kwargs)
+
+
+def _binding_profiles_to_tables(profile: Mapping[str, Any]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Convert array-level binding profile dictionaries into pandas tables."""
+    summary = pd.DataFrame(list(profile.get("summary", [])))
+    rows: List[Dict[str, Any]] = []
+    distributions = profile.get("binding_distribution", {})
+    for component, hist in distributions.items():
+        edges = np.asarray(hist.get("edges", []), dtype=np.float64)
+        centers = np.asarray(hist.get("centers", []), dtype=np.float64)
+        mass = np.asarray(hist.get("mass", []), dtype=np.float64)
+        count = np.asarray(hist.get("count", []), dtype=np.int64)
+        density = np.asarray(hist.get("mass_density", []), dtype=np.float64)
+        for i in range(mass.size):
+            rows.append(
+                {
+                    "component": str(component),
+                    "bin_index": int(i),
+                    "binding_energy_min": float(edges[i]),
+                    "binding_energy_max": float(edges[i + 1]),
+                    "binding_energy_center": float(centers[i]),
+                    "mass": float(mass[i]),
+                    "count": int(count[i]),
+                    "mass_density": float(density[i]),
+                }
+            )
+    return summary, pd.DataFrame(rows)
+
+
+def compute_subhalo_component_binding_profiles(
+    cat: TNGCatalog,
+    subs: Mapping[str, np.ndarray],
+    sid: int,
+    *,
+    snap: int,
+    base_path: Union[str, Path],
+    header: Mapping[str, Any],
+    components: Sequence[Union[str, int]] = ("gas", "dm", "stars"),
+    retry_cfg: Optional[Mapping[str, Any]] = None,
+    bins: Union[int, Sequence[float]] = 64,
+    energy_edges: Optional[Sequence[float]] = None,
+    log_bins: bool = True,
+    bound_only: bool = True,
+    gas_energy_mode: str = "enthalpy",
+    gas_gamma: float = 5.0 / 3.0,
+    potential_method: str = "spherical",
+    softening_kpc: float = 0.05,
+    include_potential: bool = True,
+    include_gas_pressure: bool = True,
+) -> Dict[str, Any]:
+    """
+    Compute component mass distributions over specific binding energy.
+
+    The returned dictionary contains raw component arrays, particle-level
+    energy arrays, a per-component summary table, and a long-format histogram
+    table.  The default gas mode uses ideal-gas enthalpy, which includes
+    pressure support when ``InternalEnergy`` is available.
+    """
+    loaded = load_subhalo_components(
+        cat,
+        subs,
+        int(sid),
+        components=components,
+        snap=int(snap),
+        base_path=base_path,
+        header=header,
+        retry_cfg=retry_cfg,
+        include_potential=include_potential,
+        include_gas_pressure=include_gas_pressure,
+    )
+    nonempty = {name: comp for name, comp in loaded.items() if np.asarray(comp["masses"]).size > 0}
+    if not nonempty:
+        empty_summary = pd.DataFrame(
+            columns=[
+                "component",
+                "n_particles",
+                "n_valid",
+                "n_bound",
+                "mass_total",
+                "mass_bound",
+                "bound_mass_fraction",
+                "median_binding_energy",
+                "potential_source",
+                "gas_term_source",
+            ]
+        )
+        return {
+            "SubhaloID": int(sid),
+            "snap": int(snap),
+            "components": loaded,
+            "profiles": {},
+            "summary": empty_summary,
+            "binding_distribution": pd.DataFrame(),
+        }
+
+    profile = hd_core.component_binding_energy_profiles(
+        nonempty,
+        bins=bins,
+        energy_edges=energy_edges,
+        log_bins=log_bins,
+        bound_only=bound_only,
+        gas_energy_mode=gas_energy_mode,
+        gas_gamma=gas_gamma,
+        potential_method=potential_method,
+        G=G_KPC_KMS2_MSUN,
+        softening=softening_kpc,
+    )
+    summary, distribution = _binding_profiles_to_tables(profile)
+    if not summary.empty:
+        summary.insert(0, "snap", int(snap))
+        summary.insert(0, "SubhaloID", int(sid))
+    if not distribution.empty:
+        distribution.insert(0, "snap", int(snap))
+        distribution.insert(0, "SubhaloID", int(sid))
+    return {
+        "SubhaloID": int(sid),
+        "snap": int(snap),
+        "components": loaded,
+        "profiles": profile,
+        "summary": summary,
+        "binding_distribution": distribution,
+    }
+
+
+def compute_halo_component_binding_profiles(
+    base_path: Union[str, Path],
+    snap: int,
+    subhalo_id: int,
+    *,
+    components: Sequence[Union[str, int]] = ("gas", "dm", "stars"),
+    cfg: Optional[Mapping[str, Any]] = None,
+    tng_catalog_kwargs: Optional[Mapping[str, Any]] = None,
+    bins: Union[int, Sequence[float]] = 64,
+    energy_edges: Optional[Sequence[float]] = None,
+    log_bins: bool = True,
+    bound_only: bool = True,
+    gas_energy_mode: str = "enthalpy",
+    gas_gamma: float = 5.0 / 3.0,
+    potential_method: str = "spherical",
+    softening_kpc: float = 0.05,
+) -> Dict[str, Any]:
+    """
+    Open a TNG catalogue and compute one subhalo's component binding profiles.
+
+    This is the simplest public entrypoint for notebooks:
+
+        out = compute_halo_component_binding_profiles(base_path, 99, 12345)
+        summary = out["summary"]
+        dist = out["binding_distribution"]
+    """
+    run_cfg = dict(DEFAULT_CFG)
+    if cfg is not None:
+        run_cfg.update(dict(cfg))
+    sim_name = str(run_cfg.get("sim_name", "TNG50-1"))
+    api_key = run_cfg.get("api_key", os.environ.get("TNG_API_KEY"))
+    header = read_header_for_snap(base_path, int(snap), sim_name=sim_name, api_key=api_key)
+    cat_kwargs = default_tng_catalog_kwargs(
+        sim_name=sim_name,
+        api_key=api_key,
+        download_if_missing=bool(run_cfg.get("download_if_missing", True)),
+        delete_cache=bool(run_cfg.get("delete_cache", True)),
+        cache_dir=run_cfg.get("cache_dir", None),
+        verbose=bool(run_cfg.get("verbose", True)),
+        timeout=int(run_cfg.get("timeout", 180)),
+    )
+    if tng_catalog_kwargs is not None:
+        cat_kwargs.update(dict(tng_catalog_kwargs))
+    retry_cfg = {
+        "max_retries": int(run_cfg.get("api_max_retries", 6)),
+        "base_sleep": float(run_cfg.get("api_retry_base_sleep", 5.0)),
+        "max_sleep": float(run_cfg.get("api_retry_max_sleep", 90.0)),
+        "verbose": bool(run_cfg.get("verbose", True)),
+    }
+    cat = None
+    try:
+        cat, _, subs = open_catalog(
+            base_path,
+            int(snap),
+            subhalo_fields=["SubhaloGrNr", "SubhaloLenType", "SubhaloPos", "SubhaloVel", "SubhaloHalfmassRadType"],
+            tng_catalog_kwargs=cat_kwargs,
+            retry_cfg=retry_cfg,
+        )
+        out = compute_subhalo_component_binding_profiles(
+            cat,
+            subs,
+            int(subhalo_id),
+            snap=int(snap),
+            base_path=base_path,
+            header=header,
+            components=components,
+            retry_cfg=retry_cfg,
+            bins=bins,
+            energy_edges=energy_edges,
+            log_bins=log_bins,
+            bound_only=bound_only,
+            gas_energy_mode=gas_energy_mode,
+            gas_gamma=gas_gamma,
+            potential_method=potential_method,
+            softening_kpc=softening_kpc,
+        )
+        out["metadata"] = {
+            "sim_name": sim_name,
+            "base_path": str(base_path),
+            "snap": int(snap),
+            "SubhaloID": int(subhalo_id),
+            "components": [str(c) for c in components],
+            "gas_energy_mode": gas_energy_mode,
+            "potential_method": potential_method,
+            "softening_kpc": float(softening_kpc),
+        }
+        return out
+    finally:
+        if cat is not None:
+            try:
+                cat.cleanup()
+            except Exception:
+                pass
+            if cat in _OPEN_CATALOGS:
+                _OPEN_CATALOGS.remove(cat)
 
 
 # -----------------------------------------------------------------------------
@@ -1674,14 +2151,18 @@ __all__ = [
     "DEFAULT_CFG",
     "G_KPC_KMS2_MSUN",
     "KM_S_PER_KPC_TO_GYR_INV",
+    "TNG_COMPONENT_PTYPES",
+    "TNG_PTYPE_COMPONENTS",
     "boxsize_ckpc_h_from_header",
     "build_shell_masks_for_particles",
     "ckpc_h_to_physical_kpc",
     "cleanup_open_catalogs",
+    "compute_halo_component_binding_profiles",
     "closure_table_from_analysis",
     "compute_haloes",
     "compute_many",
     "compute_one_subhalo",
+    "compute_subhalo_component_binding_profiles",
     "cosmic_time_gyr_from_header",
     "cross_time_pattern_speed_for_subhalo",
     "default_tng_catalog_kwargs",
@@ -1690,7 +2171,10 @@ __all__ = [
     "enrich_run_with_group_metadata",
     "hubble_from_header",
     "analyse_particle_data",
+    "load_subhalo_component_particles",
+    "load_subhalo_components",
     "load_subhalo_dm_particles",
+    "load_subhalo_halo_components",
     "load_sublink_mpb",
     "open_catalog",
     "read_header_for_snap",

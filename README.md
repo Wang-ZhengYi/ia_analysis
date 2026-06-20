@@ -11,7 +11,7 @@ repository-root Python compatibility wrappers are intentionally not shipped.
 - `src/ia_analysis/catalogs`: CS/TNG catalog and particle loaders.
 - `src/ia_analysis/shapes`: inertia tensors, principal axes, kinematics, IA projections.
 - `src/ia_analysis/tides`: potential gridding and tidal tensor interpolation.
-- `src/ia_analysis/dynamics`: shell-wise halo/subhalo dynamics and TNG wrappers.
+- `src/ia_analysis/dynamics`: shell-wise halo/subhalo dynamics, component binding-energy profiles, and TNG wrappers.
 - `src/ia_analysis/MergerTree`: merger-tree reading and cross-time workflow orchestration.
 - `src/ia_analysis/spectra`: mesh construction, IA/matter/velocity power spectra, and NLA helpers.
 - `src/ia_analysis/meshes`: compatibility namespace for old mesh imports.
@@ -38,6 +38,16 @@ python -m ia_analysis.spectra.ia_pk_cs --help
 python -m ia_analysis.covariance.Cov --help
 ```
 
+For component mass distributions over binding energy in TNG subhaloes, use:
+
+```python
+from ia_analysis.dynamics import compute_tng_component_binding_profiles
+
+out = compute_tng_component_binding_profiles(base_path, snap=99, subhalo_id=12345)
+summary = out["summary"]
+binding_distribution = out["binding_distribution"]
+```
+
 ## Dependencies
 
 Install the baseline stack with:
@@ -46,6 +56,9 @@ Install the baseline stack with:
 pip install -r requirements/core.txt
 pip install -r requirements/dev.txt
 ```
+
+`h5py` is a required baseline dependency because catalog, snapshot, covariance,
+and several visualization workflows all read or write HDF5 files.
 
 HPC/COSMA-specific dependencies are documented in `requirements/cosma.txt`;
 some are not always available from standard PyPI indexes.

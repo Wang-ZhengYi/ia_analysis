@@ -56,10 +56,7 @@ from urllib.request import Request, urlopen
 
 import numpy as np
 
-try:
-    import h5py
-except Exception:  # pragma: no cover - HDF5 operations require h5py at runtime
-    h5py = None
+import h5py
 
 logger = logging.getLogger(__name__)
 

@@ -21,6 +21,9 @@ from ia_analysis._lazy_imports import ExportMap, load_export
 
 _EXPORTS: ExportMap = {
     "make_shell_masks": ("ia_analysis.dynamics.api", "make_shell_masks"),
+    "component_binding_energy": ("ia_analysis.dynamics.api", "component_binding_energy"),
+    "binding_energy_mass_distribution": ("ia_analysis.dynamics.api", "binding_energy_mass_distribution"),
+    "component_binding_energy_profiles": ("ia_analysis.dynamics.api", "component_binding_energy_profiles"),
     "analyze_shell": ("ia_analysis.dynamics.api", "analyze_shell"),
     "analyze_halo_shells": ("ia_analysis.dynamics.api", "analyze_halo_shells"),
     "analyze_particle_halo": ("ia_analysis.dynamics.api", "analyze_particle_halo"),
@@ -30,6 +33,8 @@ _EXPORTS: ExportMap = {
     "tidal_response_terms": ("ia_analysis.dynamics.api", "tidal_response_terms"),
     "compute_tng_subhalo_dynamics": ("ia_analysis.dynamics.api", "compute_tng_subhalo_dynamics"),
     "compute_tng_halo_sample": ("ia_analysis.dynamics.api", "compute_tng_halo_sample"),
+    "compute_tng_component_binding_profiles": ("ia_analysis.dynamics.api", "compute_tng_component_binding_profiles"),
+    "compute_halo_component_binding_profiles": ("ia_analysis.dynamics.api", "compute_halo_component_binding_profiles"),
 }
 
 __all__ = [

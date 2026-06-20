@@ -52,10 +52,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 
-try:
-    import h5py
-except Exception:  # pragma: no cover
-    h5py = None
+import h5py
 
 try:
     import pyccl as ccl
@@ -769,8 +766,6 @@ def write_covariance_hdf5_group(
     output_group: str = 'covariance',
 ) -> None:
     """Build and write covariance matrices under one sample HDF5 group."""
-    if h5py is None:
-        raise ImportError('h5py is required to write covariance outputs.')
     if input_group not in h5_group:
         raise KeyError(f"Missing input group '{input_group}' in sample group {h5_group.name}")
 
@@ -975,9 +970,6 @@ def main() -> None:
     ap.add_argument('--hm-na', type=int, default=5)
     ap.add_argument('--hm-concentration-value', type=float, default=5.0)
     args = ap.parse_args()
-
-    if h5py is None:
-        raise ImportError('h5py is required for the Cov.py command-line interface.')
 
     hmopts = HaloModelOptions(
         log10M_min=args.hm_log10m_min,

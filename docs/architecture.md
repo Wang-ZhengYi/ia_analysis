@@ -24,6 +24,11 @@ done at each snapshot.
 
 `visualization` and `orbits` are side modules used by notebooks and experiments.
 
+The `dynamics` package owns particle-level and component-level halo dynamics.
+Besides shell-wise tensor diagnostics, it now provides component binding-energy
+profiles: array-level helpers live in `halo_dynamics.py`, while TNG catalog
+loading and unit conversion live in `hd_tng.py`.
+
 ## Public Imports
 
 The repository does not ship root-level Python wrappers.  New code should import
@@ -44,12 +49,16 @@ For mesh construction, prefer `ia_analysis.spectra.CatMesh`,
 inside `src` as a deprecation layer for older notebooks, but no root-level mesh
 wrappers are published.
 
-## Optional Heavy Dependencies
+## Dependencies
 
-Modules that require `pyccl`, Pylians (`MAS_library`, `Pk_library`),
-`illustris_python`, or `halotools` are kept in their functional subpackages.
-The top-level `ia_analysis` package deliberately avoids importing those modules
-at import time.
+`h5py` is a required baseline dependency because the project reads and writes
+HDF5 catalogues, snapshots, spectra, and covariance products throughout the core
+workflow.
+
+Heavier domain-specific dependencies such as `pyccl`, Pylians (`MAS_library`,
+`Pk_library`), `illustris_python`, or `halotools` are kept in their functional
+subpackages.  The top-level `ia_analysis` package deliberately avoids importing
+those modules at import time.
 
 ## Dynamics Consolidation
 

@@ -575,6 +575,522 @@ def binding_energy_shell_masks(
     return masks, info
 
 
+def spherical_potential_from_radial_mass(
+    radii: ArrayLike,
+    source_radii: ArrayLike,
+    source_masses: ArrayLike,
+    *,
+    G: float = 4.30091727003628e-6,
+    softening: float = 0.0,
+) -> np.ndarray:
+    """
+    Approximate the gravitational potential from a spherical mass profile.
+
+    Parameters
+    ----------
+    radii
+        Query radii in the same length unit used by ``G``.
+    source_radii, source_masses
+        Radii and masses that define the spherical source profile.
+    G
+        Gravitational constant in units compatible with the input arrays.  The
+        default is kpc (km/s)^2 / Msun.
+    softening
+        Plummer-like minimum radius used only to avoid singular denominators.
+
+    Notes
+    -----
+    The returned potential is
+
+        Phi(r) = -G [M(<r) / r + integral_r^inf dM(r') / r']
+
+    with softened radii in both terms.  This is much cheaper than the direct
+    pairwise potential and is the default for multi-component halo profiles.
+    """
+    rq = np.asarray(radii, dtype=np.float64).reshape(-1)
+    rs = np.asarray(source_radii, dtype=np.float64).reshape(-1)
+    ms = np.asarray(source_masses, dtype=np.float64).reshape(-1)
+    if rs.shape != ms.shape:
+        raise ValueError("`source_radii` and `source_masses` must have matching shapes")
+
+    good = np.isfinite(rs) & np.isfinite(ms) & (rs >= 0.0) & (ms > 0.0)
+    phi = np.full(rq.shape, np.nan, dtype=np.float64)
+    qgood = np.isfinite(rq) & (rq >= 0.0)
+    if not np.any(good) or not np.any(qgood):
+        return phi
+
+    eps = max(float(softening), 0.0)
+    order = np.argsort(rs[good])
+    r_sorted = rs[good][order]
+    m_sorted = ms[good][order]
+    r_soft = np.sqrt(r_sorted * r_sorted + eps * eps)
+    r_soft = np.maximum(r_soft, np.finfo(np.float64).tiny)
+
+    cumulative_mass = np.cumsum(m_sorted)
+    cumulative_m_over_r = np.cumsum(m_sorted / r_soft)
+    total_m_over_r = cumulative_m_over_r[-1]
+
+    idx = np.searchsorted(r_sorted, rq[qgood], side="right") - 1
+    inner_mass = np.where(idx >= 0, cumulative_mass[np.clip(idx, 0, cumulative_mass.size - 1)], 0.0)
+    inner_m_over_r = np.where(idx >= 0, cumulative_m_over_r[np.clip(idx, 0, cumulative_m_over_r.size - 1)], 0.0)
+    outer_m_over_r = total_m_over_r - inner_m_over_r
+
+    rq_soft = np.sqrt(rq[qgood] * rq[qgood] + eps * eps)
+    rq_soft = np.maximum(rq_soft, np.finfo(np.float64).tiny)
+    phi[qgood] = -float(G) * (inner_mass / rq_soft + outer_m_over_r)
+    return phi
+
+
+def _optional_specific_array(values: Optional[ArrayLike], n: int, name: str) -> Optional[np.ndarray]:
+    """Return an optional one-dimensional specific-energy-like array."""
+    if values is None:
+        return None
+    arr = np.asarray(values, dtype=np.float64).reshape(-1)
+    if arr.shape != (n,):
+        raise ValueError(f"`{name}` must have shape ({n},); got {arr.shape}")
+    return arr
+
+
+def _gas_specific_support_term(
+    n: int,
+    *,
+    internal_energy: Optional[ArrayLike] = None,
+    pressure: Optional[ArrayLike] = None,
+    density: Optional[ArrayLike] = None,
+    pressure_over_density: Optional[ArrayLike] = None,
+    gas_energy_mode: str = "enthalpy",
+    gas_gamma: float = 5.0 / 3.0,
+) -> Tuple[np.ndarray, str]:
+    """
+    Build the gas thermal/pressure support term in velocity-squared units.
+
+    ``InternalEnergy`` in Gadget/TNG data is a specific thermal energy.  For
+    binding-energy work the most useful pressure-supported choice is often the
+    specific enthalpy, ``u + P/rho = gamma * u`` for an ideal gas.  If pressure
+    and density are supplied directly, the same term is computed as
+    ``gamma / (gamma - 1) * P/rho``.
+    """
+    mode = str(gas_energy_mode or "none").lower().strip()
+    if mode in ("none", "off", "false", "no"):
+        return np.zeros(n, dtype=np.float64), "none"
+
+    gamma = float(gas_gamma)
+    if not np.isfinite(gamma) or gamma <= 1.0:
+        raise ValueError("`gas_gamma` must be finite and greater than one")
+
+    u = _optional_specific_array(internal_energy, n, "internal_energy")
+    p_over_rho = _optional_specific_array(pressure_over_density, n, "pressure_over_density")
+    if p_over_rho is None and pressure is not None and density is not None:
+        p = _optional_specific_array(pressure, n, "pressure")
+        rho = _optional_specific_array(density, n, "density")
+        assert p is not None and rho is not None
+        good = np.isfinite(p) & np.isfinite(rho) & (rho > 0.0)
+        p_over_rho = np.zeros(n, dtype=np.float64)
+        p_over_rho[good] = p[good] / rho[good]
+
+    if mode in ("auto", "enthalpy", "pressure", "pressure_support"):
+        if u is not None:
+            term = gamma * u
+            return np.where(np.isfinite(term), term, 0.0), "enthalpy_from_internal_energy"
+        if p_over_rho is not None:
+            term = gamma / (gamma - 1.0) * p_over_rho
+            return np.where(np.isfinite(term), term, 0.0), "enthalpy_from_pressure_density"
+        return np.zeros(n, dtype=np.float64), "missing_pressure_data"
+
+    if mode in ("thermal", "internal", "internal_energy"):
+        if u is not None:
+            term = u
+            return np.where(np.isfinite(term), term, 0.0), "internal_energy"
+        if p_over_rho is not None:
+            term = p_over_rho / (gamma - 1.0)
+            return np.where(np.isfinite(term), term, 0.0), "thermal_from_pressure_density"
+        return np.zeros(n, dtype=np.float64), "missing_pressure_data"
+
+    if mode in ("p_over_rho", "pressure_over_density"):
+        if p_over_rho is not None:
+            return np.where(np.isfinite(p_over_rho), p_over_rho, 0.0), "pressure_over_density"
+        return np.zeros(n, dtype=np.float64), "missing_pressure_data"
+
+    raise ValueError(
+        "`gas_energy_mode` must be one of 'auto', 'enthalpy', 'thermal', "
+        "'p_over_rho', or 'none'"
+    )
+
+
+def component_binding_energy(
+    positions: ArrayLike,
+    velocities: ArrayLike,
+    masses: Optional[ArrayLike] = None,
+    *,
+    center: Optional[ArrayLike] = None,
+    v_ref: Optional[ArrayLike] = None,
+    potentials: Optional[ArrayLike] = None,
+    source_positions: Optional[ArrayLike] = None,
+    source_masses: Optional[ArrayLike] = None,
+    internal_energy: Optional[ArrayLike] = None,
+    pressure: Optional[ArrayLike] = None,
+    density: Optional[ArrayLike] = None,
+    pressure_over_density: Optional[ArrayLike] = None,
+    component: str = "matter",
+    gas_energy_mode: str = "auto",
+    gas_gamma: float = 5.0 / 3.0,
+    potential_method: str = "spherical",
+    compute_potential_if_missing: bool = True,
+    G: float = 4.30091727003628e-6,
+    softening: float = 0.0,
+) -> Dict[str, Any]:
+    """
+    Compute per-particle specific binding energy for one halo component.
+
+    The specific total energy is
+
+        e = 0.5 |v - v_ref|^2 + Phi + q_gas,
+
+    where ``q_gas`` is zero for collisionless components.  For gas, ``q_gas``
+    can include internal energy or pressure support through ``gas_energy_mode``.
+    The returned ``specific_binding_energy`` is ``-e``; particles with positive
+    values are energetically bound under this convention.
+
+    By default positions and velocities are interpreted as already relative to
+    the subhalo.  Pass ``center`` and ``v_ref`` when using absolute coordinates.
+    """
+    pos = _as_2d_positions(positions)
+    vel = _as_2d_positions(velocities, name="velocities")
+    if vel.shape != pos.shape:
+        raise ValueError("`velocities` must match `positions`")
+    n = pos.shape[0]
+    m = _as_1d_masses(masses, n)
+
+    cen = np.zeros(3, dtype=np.float64) if center is None else _as_vector(center, "center")
+    v0 = np.zeros(3, dtype=np.float64) if v_ref is None else _as_vector(v_ref, "v_ref")
+    X = pos - cen[None, :]
+    U = vel - v0[None, :]
+    radius = np.sqrt(np.sum(X * X, axis=1))
+    kinetic = 0.5 * np.sum(U * U, axis=1)
+
+    if potentials is not None:
+        phi = np.asarray(potentials, dtype=np.float64).reshape(-1)
+        if phi.shape != (n,):
+            raise ValueError(f"`potentials` must have shape ({n},); got {phi.shape}")
+        potential_source = "input"
+    else:
+        if not compute_potential_if_missing:
+            raise ValueError("`potentials` is required unless compute_potential_if_missing=True")
+        method = str(potential_method or "spherical").lower().strip()
+        xs = X if source_positions is None else _as_2d_positions(source_positions, name="source_positions")
+        ms = _as_1d_masses(source_masses, xs.shape[0])
+        if method in ("spherical", "shell", "radial"):
+            rs = np.sqrt(np.sum(xs * xs, axis=1))
+            phi = spherical_potential_from_radial_mass(radius, rs, ms, G=G, softening=softening)
+            potential_source = "spherical"
+        elif method in ("direct", "pairwise"):
+            phi = compute_particle_potential_direct(
+                X,
+                masses=m,
+                source_positions=xs,
+                source_masses=ms,
+                G=G,
+                softening=softening,
+                exclude_self=source_positions is None,
+            )
+            potential_source = "direct"
+        else:
+            raise ValueError("`potential_method` must be 'spherical' or 'direct'")
+
+    comp_name = str(component or "matter").lower()
+    is_gas = comp_name in ("gas", "parttype0", "0")
+    if is_gas:
+        gas_term, gas_term_source = _gas_specific_support_term(
+            n,
+            internal_energy=internal_energy,
+            pressure=pressure,
+            density=density,
+            pressure_over_density=pressure_over_density,
+            gas_energy_mode=gas_energy_mode,
+            gas_gamma=gas_gamma,
+        )
+    else:
+        gas_term = np.zeros(n, dtype=np.float64)
+        gas_term_source = "not_gas"
+
+    specific_total_energy = kinetic + phi + gas_term
+    specific_binding_energy = -specific_total_energy
+    valid = finite_particle_mask(X, U, m) & np.isfinite(phi) & np.isfinite(specific_total_energy)
+    bound = valid & (specific_binding_energy > 0.0)
+
+    return {
+        "component": component,
+        "X": X,
+        "U": U,
+        "masses": m,
+        "radius": radius,
+        "kinetic": kinetic,
+        "potential": phi,
+        "gas_term": gas_term,
+        "specific_total_energy": specific_total_energy,
+        "specific_binding_energy": specific_binding_energy,
+        "valid_mask": valid,
+        "bound_mask": bound,
+        "center": cen,
+        "v_ref": v0,
+        "potential_source": potential_source,
+        "gas_term_source": gas_term_source,
+    }
+
+
+def binding_energy_mass_distribution(
+    binding_energy: ArrayLike,
+    masses: ArrayLike,
+    *,
+    bins: Union[int, ArrayLike] = 64,
+    edges: Optional[ArrayLike] = None,
+    log_bins: bool = True,
+    bound_only: bool = True,
+) -> Dict[str, np.ndarray]:
+    """
+    Histogram mass as a function of positive specific binding energy.
+
+    Parameters
+    ----------
+    binding_energy
+        Specific binding energy, usually ``-specific_total_energy``.
+    masses
+        Particle masses used as histogram weights.
+    bins, edges
+        Either an integer bin count or explicit edges.  ``edges`` takes
+        precedence when provided.
+    log_bins
+        Use logarithmic binning when explicit edges are not supplied.
+    bound_only
+        If True, keep only particles with positive binding energy.
+    """
+    e = np.asarray(binding_energy, dtype=np.float64).reshape(-1)
+    m = np.asarray(masses, dtype=np.float64).reshape(-1)
+    if e.shape != m.shape:
+        raise ValueError("`binding_energy` and `masses` must have matching shapes")
+
+    valid = np.isfinite(e) & np.isfinite(m) & (m > 0.0)
+    if bound_only:
+        valid &= e > 0.0
+
+    if edges is not None:
+        bin_edges = np.asarray(edges, dtype=np.float64).reshape(-1)
+    elif np.ndim(bins) > 0 and not np.isscalar(bins):
+        bin_edges = np.asarray(bins, dtype=np.float64).reshape(-1)
+    else:
+        n_bins = int(bins)
+        if n_bins <= 0:
+            raise ValueError("`bins` must be positive")
+        values = e[valid]
+        if values.size == 0:
+            bin_edges = np.array([], dtype=np.float64)
+        elif log_bins:
+            values = values[values > 0.0]
+            if values.size == 0:
+                bin_edges = np.array([], dtype=np.float64)
+            else:
+                lo = float(np.nanmin(values))
+                hi = float(np.nanmax(values))
+                if not hi > lo:
+                    lo = max(lo * 0.5, np.finfo(np.float64).tiny)
+                    hi = hi * 1.5 if hi > 0.0 else 1.0
+                bin_edges = np.logspace(np.log10(lo), np.log10(hi), n_bins + 1)
+        else:
+            lo = float(np.nanmin(values))
+            hi = float(np.nanmax(values))
+            if not hi > lo:
+                pad = max(abs(lo) * 0.5, 1.0)
+                lo -= pad
+                hi += pad
+            bin_edges = np.linspace(lo, hi, n_bins + 1)
+
+    if bin_edges.size < 2:
+        return {
+            "edges": bin_edges,
+            "centers": np.array([], dtype=np.float64),
+            "mass": np.array([], dtype=np.float64),
+            "count": np.array([], dtype=np.int64),
+            "mass_density": np.array([], dtype=np.float64),
+        }
+
+    hist_mass, _ = np.histogram(e[valid], bins=bin_edges, weights=m[valid])
+    hist_count, _ = np.histogram(e[valid], bins=bin_edges)
+    if np.all(bin_edges > 0.0):
+        centers = np.sqrt(bin_edges[:-1] * bin_edges[1:])
+        widths = np.diff(np.log10(bin_edges))
+    else:
+        centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+        widths = np.diff(bin_edges)
+    widths = np.where(widths > 0.0, widths, np.nan)
+    density = hist_mass / widths
+
+    return {
+        "edges": bin_edges,
+        "centers": centers,
+        "mass": hist_mass.astype(np.float64),
+        "count": hist_count.astype(np.int64),
+        "mass_density": density.astype(np.float64),
+    }
+
+
+def _component_value(component: Mapping[str, Any], *names: str) -> Any:
+    """Return the first present component field from a list of aliases."""
+    for name in names:
+        if name in component:
+            return component[name]
+    return None
+
+
+def component_binding_energy_profiles(
+    components: Mapping[str, Mapping[str, Any]],
+    *,
+    source_components: Optional[Sequence[str]] = None,
+    bins: Union[int, ArrayLike] = 64,
+    energy_edges: Optional[ArrayLike] = None,
+    log_bins: bool = True,
+    bound_only: bool = True,
+    gas_energy_mode: str = "enthalpy",
+    gas_gamma: float = 5.0 / 3.0,
+    potential_method: str = "spherical",
+    G: float = 4.30091727003628e-6,
+    softening: float = 0.0,
+) -> Dict[str, Any]:
+    """
+    Compute mass distributions over binding energy for multiple components.
+
+    ``components`` is a mapping from component name to arrays.  Each component
+    may use either generic keys (``positions``, ``velocities``) or the TNG
+    wrapper keys (``X_kpc``, ``U_kms``).  Masses are read from ``masses``.  Gas
+    pressure support is read from ``internal_energy`` and, when present,
+    ``pressure`` plus ``density``.
+
+    The source potential is built from the union of ``source_components``.  By
+    default every supplied component contributes to the potential.
+    """
+    if not components:
+        raise ValueError("`components` must contain at least one component")
+
+    normalized: Dict[str, Dict[str, Any]] = {}
+    for name, comp in components.items():
+        pos = _component_value(comp, "positions", "X_kpc", "x")
+        vel = _component_value(comp, "velocities", "U_kms", "v")
+        if pos is None or vel is None:
+            raise KeyError(f"Component '{name}' must provide positions/X_kpc and velocities/U_kms")
+        pos_arr = _as_2d_positions(pos, name=f"{name}.positions")
+        vel_arr = _as_2d_positions(vel, name=f"{name}.velocities")
+        if vel_arr.shape != pos_arr.shape:
+            raise ValueError(f"Component '{name}' velocity array does not match positions")
+        mass_arr = _as_1d_masses(_component_value(comp, "masses", "mass"), pos_arr.shape[0])
+        normalized[str(name)] = {
+            "positions": pos_arr,
+            "velocities": vel_arr,
+            "masses": mass_arr,
+            "potential": _component_value(comp, "potential", "potentials"),
+            "internal_energy": _component_value(comp, "internal_energy", "InternalEnergy"),
+            "pressure": _component_value(comp, "pressure", "Pressure"),
+            "density": _component_value(comp, "density", "Density"),
+            "pressure_over_density": _component_value(comp, "pressure_over_density", "p_over_rho"),
+        }
+
+    source_names = list(source_components) if source_components is not None else list(normalized)
+    source_positions_list: List[np.ndarray] = []
+    source_masses_list: List[np.ndarray] = []
+    for name in source_names:
+        if name not in normalized:
+            raise KeyError(f"Source component '{name}' is not present in components")
+        comp = normalized[name]
+        good = finite_particle_mask(comp["positions"], comp["velocities"], comp["masses"])
+        if np.any(good):
+            source_positions_list.append(comp["positions"][good])
+            source_masses_list.append(comp["masses"][good])
+    if not source_positions_list:
+        raise ValueError("No finite positive-mass particles are available for the potential source")
+    source_positions_all = np.vstack(source_positions_list)
+    source_masses_all = np.concatenate(source_masses_list)
+
+    energies: Dict[str, Dict[str, Any]] = {}
+    all_binding: List[np.ndarray] = []
+    for name, comp in normalized.items():
+        pot = comp["potential"] if str(potential_method).lower().strip() in ("input", "precomputed") else None
+        out = component_binding_energy(
+            comp["positions"],
+            comp["velocities"],
+            comp["masses"],
+            potentials=pot,
+            source_positions=source_positions_all,
+            source_masses=source_masses_all,
+            internal_energy=comp["internal_energy"],
+            pressure=comp["pressure"],
+            density=comp["density"],
+            pressure_over_density=comp["pressure_over_density"],
+            component=name,
+            gas_energy_mode=gas_energy_mode,
+            gas_gamma=gas_gamma,
+            potential_method="spherical" if str(potential_method).lower().strip() in ("input", "precomputed") else potential_method,
+            G=G,
+            softening=softening,
+        )
+        energies[name] = out
+        good = out["valid_mask"]
+        if bound_only:
+            good = good & out["bound_mask"]
+        all_binding.append(out["specific_binding_energy"][good])
+
+    common_edges = None if energy_edges is None else np.asarray(energy_edges, dtype=np.float64)
+    if common_edges is None:
+        values = np.concatenate([x[np.isfinite(x)] for x in all_binding if x.size]) if any(x.size for x in all_binding) else np.array([])
+        if log_bins:
+            values = values[values > 0.0]
+        if values.size:
+            common_edges = binding_energy_mass_distribution(
+                values,
+                np.ones_like(values),
+                bins=bins,
+                log_bins=log_bins,
+                bound_only=bound_only,
+            )["edges"]
+
+    distributions: Dict[str, Dict[str, np.ndarray]] = {}
+    summary: List[Dict[str, Any]] = []
+    for name, out in energies.items():
+        hist = binding_energy_mass_distribution(
+            out["specific_binding_energy"],
+            out["masses"],
+            bins=bins,
+            edges=common_edges,
+            log_bins=log_bins,
+            bound_only=bound_only,
+        )
+        distributions[name] = hist
+        valid = out["valid_mask"]
+        bound = out["bound_mask"]
+        total_mass = float(np.sum(out["masses"][valid])) if np.any(valid) else 0.0
+        bound_mass = float(np.sum(out["masses"][bound])) if np.any(bound) else 0.0
+        be = out["specific_binding_energy"][bound]
+        summary.append(
+            {
+                "component": name,
+                "n_particles": int(out["masses"].size),
+                "n_valid": int(np.count_nonzero(valid)),
+                "n_bound": int(np.count_nonzero(bound)),
+                "mass_total": total_mass,
+                "mass_bound": bound_mass,
+                "bound_mass_fraction": bound_mass / total_mass if total_mass > 0.0 else np.nan,
+                "median_binding_energy": float(np.nanmedian(be)) if be.size else np.nan,
+                "potential_source": out["potential_source"],
+                "gas_term_source": out["gas_term_source"],
+            }
+        )
+
+    return {
+        "components": energies,
+        "binding_distribution": distributions,
+        "summary": summary,
+        "energy_edges": common_edges if common_edges is not None else np.array([], dtype=np.float64),
+        "source_components": source_names,
+    }
+
+
 def normalize_subset_masks(subsets: Sequence[np.ndarray], n_particles: int) -> Tuple[List[np.ndarray], Dict[str, Any]]:
     """Validate user-supplied subset masks for shell-wise analysis."""
     masks: List[np.ndarray] = []
@@ -1401,6 +1917,10 @@ def shape_beta_fig_from_moments(I: np.ndarray, dI: np.ndarray, ddI: np.ndarray, 
 __all__ = [
     "radial_shell_masks",
     "binding_energy_shell_masks",
+    "spherical_potential_from_radial_mass",
+    "component_binding_energy",
+    "binding_energy_mass_distribution",
+    "component_binding_energy_profiles",
     "make_shell_masks",
     "moment_derivative_tensor",
     "compute_affine_kinematics",

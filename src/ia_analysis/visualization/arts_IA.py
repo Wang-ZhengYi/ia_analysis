@@ -28,6 +28,7 @@ from dataclasses import dataclass
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple, Any
 
 import numpy as np
+import h5py
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse, FancyArrowPatch
 from matplotlib.lines import Line2D
@@ -320,11 +321,6 @@ def _standardize_ma_keys(MA: dict) -> dict:
 
 def _read_hdf5_flat(path) -> dict:
     """Read an HDF5 file into a flat dictionary with full-path keys and basename keys."""
-    try:
-        import h5py
-    except Exception as exc:  # pragma: no cover
-        raise ImportError("h5py is required to read HDF5 MA catalogues.") from exc
-
     out = {}
     with h5py.File(path, "r") as f:
         def visitor(name, obj):
