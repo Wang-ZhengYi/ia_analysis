@@ -17,7 +17,7 @@ api.load_domain_api("catalogs")
 ```
 
 The registry currently covers `catalogs`, `shapes`, `tides`, `dynamics`,
-`covariance`, `pipelines`, `orbits`, and `visualization`.
+`merger_tree`, `covariance`, `pipelines`, `orbits`, and `visualization`.
 
 ## Recommended Imports
 
@@ -43,6 +43,12 @@ Halo dynamics:
 
 ```python
 from ia_analysis.dynamics import analyze_particle_halo, compute_tng_halo_sample
+```
+
+Merger-tree tracks and cross-time workflows:
+
+```python
+from ia_analysis.MergerTree import build_main_progenitor_track, run_cross_time_workflow
 ```
 
 Covariance products:

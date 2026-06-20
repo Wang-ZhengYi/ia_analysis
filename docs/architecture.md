@@ -9,7 +9,7 @@ Low-level modules should remain reusable and should not import pipeline code:
 
 ```text
 catalogs / shapes / tides
-        -> dynamics
+        -> dynamics / MergerTree
         -> spectra / covariance
         -> pipelines
 ```
@@ -17,6 +17,10 @@ catalogs / shapes / tides
 Mesh construction now lives under `spectra` because the mesh objects are the
 direct inputs to power-spectrum estimation.  The `ia_analysis.meshes` namespace
 is retained as a compatibility layer only.
+
+`MergerTree` is an orchestration layer for cross-time TNG reading.  It follows
+merger-tree tracks and calls `catalogs`, `shapes`, and `dynamics` for the work
+done at each snapshot.
 
 `visualization` and `orbits` are side modules used by notebooks and experiments.
 
@@ -28,7 +32,8 @@ Command-line execution should use `python -m ia_analysis.<subpackage>.<module>`.
 
 For non-spectra domains, prefer the structured API facade in each package:
 `ia_analysis.catalogs.api`, `ia_analysis.shapes.api`, `ia_analysis.tides.api`,
-`ia_analysis.dynamics.api`, `ia_analysis.covariance.api`,
+`ia_analysis.dynamics.api`, `ia_analysis.MergerTree.api`,
+`ia_analysis.covariance.api`,
 `ia_analysis.pipelines.api`, `ia_analysis.orbits.api`, and
 `ia_analysis.visualization.api`.  The top-level `ia_analysis.api` registry can
 discover these domains without importing heavy implementation modules.

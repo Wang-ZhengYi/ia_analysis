@@ -24,6 +24,7 @@ _DOMAIN_APIS = {
     "shapes": ("ia_analysis.shapes.api", "Shape tensors, axes, spin, and IA projections."),
     "tides": ("ia_analysis.tides.api", "Potential grids, tidal tensors, and interpolation."),
     "dynamics": ("ia_analysis.dynamics.api", "Shell-wise halo dynamics and TNG wrappers."),
+    "merger_tree": ("ia_analysis.MergerTree.api", "Merger-tree reading and cross-time workflow orchestration."),
     "covariance": ("ia_analysis.covariance.api", "Gaussian, cNG, and SSC covariance helpers."),
     "pipelines": ("ia_analysis.pipelines.api", "Discoverable end-to-end pipeline entrypoints."),
     "orbits": ("ia_analysis.orbits.api", "NFW orbit experiments and mock halo generation."),
@@ -51,4 +52,3 @@ def load_domain_api(domain: str) -> ModuleType:
         raise KeyError(f"Unknown IA analysis API domain {domain!r}. Available domains: {valid}")
     module_name, _ = _DOMAIN_APIS[key]
     return import_module(module_name)
-

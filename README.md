@@ -12,6 +12,7 @@ repository-root Python compatibility wrappers are intentionally not shipped.
 - `src/ia_analysis/shapes`: inertia tensors, principal axes, kinematics, IA projections.
 - `src/ia_analysis/tides`: potential gridding and tidal tensor interpolation.
 - `src/ia_analysis/dynamics`: shell-wise halo/subhalo dynamics and TNG wrappers.
+- `src/ia_analysis/MergerTree`: merger-tree reading and cross-time workflow orchestration.
 - `src/ia_analysis/spectra`: mesh construction, IA/matter/velocity power spectra, and NLA helpers.
 - `src/ia_analysis/meshes`: compatibility namespace for old mesh imports.
 - `src/ia_analysis/covariance`: Gaussian, cNG, and SSC covariance tools.
@@ -53,6 +54,7 @@ some are not always available from standard PyPI indexes.
 
 - `docs/architecture.md`: module boundaries and dependency direction.
 - `docs/api_facades.md`: recommended structured import paths.
+- `docs/merger_tree.md`: merger-tree and cross-time workflow steps.
 - `docs/running.md`: CLI entrypoints, configuration, and environment variables.
 - `docs/visualization.md`: structured visualization module map.
 - `docs/velocity_divergence_self_folding.md`: velocity-divergence folding decision and `tm` proxy.

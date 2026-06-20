@@ -43,8 +43,11 @@ _EXPORTS: ExportMap = {
     "compute_one_subhalo": ("ia_analysis.dynamics.hd_tng", "compute_one_subhalo"),
     "compute_haloes": ("ia_analysis.dynamics.hd_tng", "compute_haloes"),
     "enrich_run_with_group_metadata": ("ia_analysis.dynamics.hd_tng", "enrich_run_with_group_metadata"),
-    "load_sublink_mpb": ("ia_analysis.dynamics.hd_tng", "load_sublink_mpb"),
-    "cross_time_pattern_speed_for_subhalo": ("ia_analysis.dynamics.hd_tng", "cross_time_pattern_speed_for_subhalo"),
+    "load_sublink_mpb": ("ia_analysis.MergerTree.reader", "load_sublink_mpb"),
+    "cross_time_pattern_speed_for_subhalo": (
+        "ia_analysis.MergerTree.workflow",
+        "cross_time_pattern_speed_for_subhalo",
+    ),
 }
 
 __all__ = [
@@ -73,4 +76,3 @@ def compute_tng_subhalo_dynamics(*args: Any, **kwargs: Any) -> dict[str, Any]:
 def compute_tng_halo_sample(*args: Any, **kwargs: Any) -> Any:
     """Compute dynamics for a selected sample of TNG haloes or subhaloes."""
     return call_export(_EXPORTS, "compute_haloes", *args, **kwargs)
-

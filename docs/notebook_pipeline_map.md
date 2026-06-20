@@ -24,7 +24,8 @@ This document maps raw notebooks to curated workflows and reusable Python code.
 
 - Raw notebooks: `TNGCatLoader.ipynb`, `TNGCatLoader_test.ipynb`, `hd_tng_crossZ.ipynb`, `hd_tng_plot.ipynb`, `crossz.ipynb`, `global_test.ipynb`.
 - Maintained notebook: `06_tng_dynamics_layered_pipeline.ipynb`.
-- Reusable modules: `ia_analysis.catalogs`, `ia_analysis.dynamics`, `ia_analysis.pipelines.tng_layered_shape_tide`.
+- Reusable modules: `ia_analysis.catalogs`, `ia_analysis.MergerTree`,
+  `ia_analysis.dynamics`, `ia_analysis.pipelines.tng_layered_shape_tide`.
 
 ## Orbits And 3D Visualization
 

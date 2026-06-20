@@ -30,6 +30,11 @@ def test_subpackage_smoke_imports():
         "ia_analysis.tides.api",
         "ia_analysis.dynamics",
         "ia_analysis.dynamics.api",
+        "ia_analysis.MergerTree",
+        "ia_analysis.MergerTree.api",
+        "ia_analysis.MergerTree.reader",
+        "ia_analysis.MergerTree.workflow",
+        "ia_analysis.MergerTree.storage",
         "ia_analysis.meshes",
         "ia_analysis.meshes.CatMesh",
         "ia_analysis.meshes.SnapMesh",
@@ -70,6 +75,7 @@ def test_shape_package_imports():
 def test_structured_api_registries_are_lightweight_and_discoverable():
     api = importlib.import_module("ia_analysis.api")
     assert "catalogs" in api.available_domains()
+    assert "merger_tree" in api.available_domains()
     assert api.load_domain_api("pipelines").pipeline_module("cs-global") == "ia_analysis.pipelines.run_cs"
 
     catalogs = importlib.import_module("ia_analysis.catalogs.api")
@@ -82,6 +88,24 @@ def test_structured_api_registries_are_lightweight_and_discoverable():
     visualization = importlib.import_module("ia_analysis.visualization.api")
     assert "alignment_plots" in visualization.available_groups()
     assert "plot_alignment_suite" in visualization.group_exports("alignment_plots")
+
+
+def test_merger_tree_track_selection_from_synthetic_table():
+    import pandas as pd
+
+    reader = importlib.import_module("ia_analysis.MergerTree.reader")
+    tree = {
+        "SnapNum": [99, 84, 67, 50],
+        "SubfindID": [10, 20, 30, 40],
+        "SubhaloMass": [1.0, 0.8, 0.5, 0.2],
+        "MatrixField": [[[1, 0], [0, 1]]] * 4,
+    }
+    table = reader.tree_to_dataframe(tree)
+    assert isinstance(table, pd.DataFrame)
+    assert "MatrixField" not in table
+    selected = reader.select_tree_rows_for_snapshots(table, [67, 99], sort="input")
+    assert list(selected["SnapNum"].astype(int)) == [67, 99]
+    assert list(selected["SubfindID"].astype(int)) == [30, 10]
 
 
 def test_dynamics_has_single_tng_driver_file():
