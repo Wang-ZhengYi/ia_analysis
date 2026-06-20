@@ -51,6 +51,15 @@ def test_subpackage_smoke_imports():
         "ia_analysis.orbits.api",
         "ia_analysis.visualization",
         "ia_analysis.visualization.api",
+        "ia_analysis.visualization.figure_io",
+        "ia_analysis.visualization.plot_styles",
+        "ia_analysis.visualization.legends",
+        "ia_analysis.visualization.profile_plots",
+        "ia_analysis.visualization.spectrum_plots",
+        "ia_analysis.visualization.correlation_plots",
+        "ia_analysis.visualization.tng_dynamics_plots",
+        "ia_analysis.visualization.merger_tree_plots",
+        "ia_analysis.visualization.alignment_atlas",
         "ia_analysis.visualization.color_tools",
         "ia_analysis.visualization.projection_geometry",
         "ia_analysis.visualization.shell_plots",
@@ -87,7 +96,15 @@ def test_structured_api_registries_are_lightweight_and_discoverable():
 
     visualization = importlib.import_module("ia_analysis.visualization.api")
     assert "alignment_plots" in visualization.available_groups()
+    assert "alignment_atlas" in visualization.available_groups()
+    assert "figure_io" in visualization.available_groups()
+    assert "spectra" in visualization.available_groups()
+    assert "tng_dynamics" in visualization.available_groups()
     assert "plot_alignment_suite" in visualization.group_exports("alignment_plots")
+    assert "save_figure" in visualization.group_exports("figure_io")
+    assert "plot_metric_atlas" in visualization.group_exports("alignment_atlas")
+    assert "plot_spectrum_grid" in visualization.group_exports("spectra")
+    assert "plot_pi_closure_table" in visualization.group_exports("tng_dynamics")
 
 
 def test_merger_tree_track_selection_from_synthetic_table():

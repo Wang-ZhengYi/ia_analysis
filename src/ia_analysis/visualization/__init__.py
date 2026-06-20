@@ -8,8 +8,8 @@ by notebooks.
 
 Provides
 --------
-- Color, projection, shell-plot, alignment, orbit-animation, and distribution
-  helper modules.
+- Figure IO, style, legend, profile, spectrum, correlation, TNG-dynamics,
+  merger-tree, alignment, orbit-animation, and distribution helper modules.
 - Lazy facade imports so package import does not immediately require plotting
   libraries.
 
@@ -30,8 +30,15 @@ _EXPORTS: ExportMap = {
     "load_group": ("ia_analysis.visualization.api", "load_group"),
     "group_exports": ("ia_analysis.visualization.api", "group_exports"),
     "resolve": ("ia_analysis.visualization.api", "resolve"),
+    "save_figure": ("ia_analysis.visualization.api", "save_figure"),
+    "set_project_style": ("ia_analysis.visualization.api", "set_project_style"),
     "configure_alignment_context": ("ia_analysis.visualization.api", "configure_alignment_context"),
+    "plot_metric_atlas": ("ia_analysis.visualization.api", "plot_metric_atlas"),
     "plot_alignment_suite": ("ia_analysis.visualization.api", "plot_alignment_suite"),
+    "plot_spectrum_grid": ("ia_analysis.visualization.api", "plot_spectrum_grid"),
+    "plot_correlation_grid": ("ia_analysis.visualization.api", "plot_correlation_grid"),
+    "plot_pi_closure_table": ("ia_analysis.visualization.api", "plot_pi_closure_table"),
+    "plot_orbit_plane_evolution": ("ia_analysis.visualization.api", "plot_orbit_plane_evolution"),
     "save_six_panel_orbit_movie": ("ia_analysis.visualization.api", "save_six_panel_orbit_movie"),
     "save_three_panel_orbit_movie": ("ia_analysis.visualization.api", "save_three_panel_orbit_movie"),
 }
@@ -40,15 +47,24 @@ __all__ = [
     *list(_EXPORTS),
     "api",
     "alignment_catalogs",
+    "alignment_atlas",
     "alignment_metrics",
     "alignment_plots",
     "color_tools",
+    "correlation_plots",
     "distribution_fits",
+    "figure_io",
+    "legends",
+    "merger_tree_plots",
     "orbit_animation",
     "parallel_alignment",
+    "plot_styles",
+    "profile_plots",
     "projection_geometry",
     "scene3d",
     "shell_plots",
+    "spectrum_plots",
+    "tng_dynamics_plots",
 ]
 
 

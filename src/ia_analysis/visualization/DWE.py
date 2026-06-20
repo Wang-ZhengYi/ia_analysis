@@ -185,7 +185,7 @@ class DimrothWatson(rv_continuous):
         k : float
             Shape parameter
         cos_theta : array-like
-            Array of cosθ values
+            Array of cos(theta) values
             
         Returns
         -------
@@ -201,12 +201,12 @@ class DimrothWatson(rv_continuous):
 
     def fit(self, cos_theta, method='L-BFGS-B', bounds=(-500, 500), max_iter=5000):
         """
-        Fit Dimroth-Watson distribution to cosθ data using maximum likelihood estimation
+        Fit Dimroth-Watson distribution to cos(theta) data using maximum likelihood estimation
         
         Parameters
         ----------
         cos_theta : array-like
-            Input cosθ values
+            Input cos(theta) values
         method : str, optional
             Optimization method to use (default: 'L-BFGS-B')
         bounds : tuple, optional
@@ -217,10 +217,10 @@ class DimrothWatson(rv_continuous):
         Returns
         -------
         dict: Dictionary containing:
-            'mu': Best-fit μ parameter
-            'mu_error': Standard error of μ
-            'kappa': Best-fit κ parameter
-            'kappa_error': Standard error of κ
+            'mu': Best-fit mu parameter
+            'mu_error': Standard error of mu
+            'kappa': Best-fit kappa parameter
+            'kappa_error': Standard error of kappa
             'success': Optimization success flag
         """
         # Convert input to numpy array and validate
@@ -229,13 +229,13 @@ class DimrothWatson(rv_continuous):
         cos_theta = cos_theta[valid_mask]
         
         if len(cos_theta) == 0:
-            raise ValueError("No valid cosθ data points")
+            raise ValueError("No valid cos(theta) data points")
         
         # Estimate initial k from data statistics
         mean_cos2 = np.mean(cos_theta**2)
         
         # Handle special cases first
-        if np.isclose(mean_cos2, 1.0, atol=1e-6):  # All points at |cosθ|=1
+        if np.isclose(mean_cos2, 1.0, atol=1e-6):  # All points at |cos(theta)|=1
             kappa_mle = 50.0 if np.mean(cos_theta) > 0 else -50.0
             mu_mle = -2 * np.arctan(kappa_mle) / np.pi
             return {
@@ -472,12 +472,12 @@ class DimrothWatson(rv_continuous):
                 alpha_hist=1.0, alpha_band=0.3, ci=90, param_name='kappa',
                 hist_type='step', ax=None):
         """
-        Plot histogram of cosθ data and fitted distribution with confidence interval
+        Plot histogram of cos(theta) data and fitted distribution with confidence interval
         
         Parameters
         ----------
         cos_theta : array-like
-            Input cosθ values
+            Input cos(theta) values
         fit_result : dict, optional
             Result from fit() method. If not provided, will call fit() internally
         symmetrize : bool, optional
