@@ -37,8 +37,6 @@ __all__ = [
     "api",
     "halo_dynamics",
     "hd_tng",
-    "hd_tng_patched",
-    "hd_tng_mea_enriched",
 ]
 
 

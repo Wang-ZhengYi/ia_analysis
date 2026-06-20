@@ -46,11 +46,10 @@ Modules that require `pyccl`, Pylians (`MAS_library`, `Pk_library`),
 The top-level `ia_analysis` package deliberately avoids importing those modules
 at import time.
 
-## Compatibility Wrappers
+## Dynamics Consolidation
 
 Historical implementation filenames remain available inside `src` for old
-notebooks and scripts.  New compatibility wrappers should forward to the
-canonical implementation instead of carrying duplicated code.  For example,
-`ia_analysis.dynamics.hd_tng_patched` now forwards to
-`ia_analysis.dynamics.hd_tng` because both files previously contained identical
-logic.
+notebooks and scripts when they still carry unique behavior.  Duplicate TNG
+dynamics implementations have been removed: `hd_tng.py` is now the only
+maintained TNG halo-dynamics driver and includes the richer cross-time
+diagnostics from the former patched/enriched files.

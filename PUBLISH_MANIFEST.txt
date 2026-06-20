@@ -1,7 +1,7 @@
 ﻿ia_analysis publish manifest
 Generated from the curated src-first project tree.
 Excluded: root-level Python wrappers, raw/archive notebooks, cache directories, data products, media outputs, and CI workflow files requiring workflow OAuth scope.
-File count: 124
+File count: 122
 
 .gitignore
 configs/example_paths.json
@@ -40,8 +40,6 @@ src/ia_analysis/dynamics/__init__.py
 src/ia_analysis/dynamics/api.py
 src/ia_analysis/dynamics/halo_dynamics.py
 src/ia_analysis/dynamics/hd_tng.py
-src/ia_analysis/dynamics/hd_tng_mea_enriched.py
-src/ia_analysis/dynamics/hd_tng_patched.py
 src/ia_analysis/meshes/__init__.py
 src/ia_analysis/meshes/CatMesh.py
 src/ia_analysis/meshes/SnapMesh.py

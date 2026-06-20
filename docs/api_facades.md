@@ -79,6 +79,7 @@ Legacy modules such as `catalog_loader.py`, `TNGCatLoader.py`, `shape.py`,
 The structured facades are now the preferred surface for new code because they
 make dependency direction and function ownership easier to see.
 
-`ia_analysis.dynamics.hd_tng_patched` is retained as a compatibility wrapper
-around `ia_analysis.dynamics.hd_tng`; the duplicate implementation body was
-removed to avoid maintaining two identical TNG dynamics files.
+TNG dynamics are now consolidated into `ia_analysis.dynamics.hd_tng`.  The
+former `hd_tng_patched.py` and `hd_tng_mea_enriched.py` copies were removed so
+there is only one maintained implementation for catalog-backed halo dynamics
+and cross-time pattern-speed diagnostics.

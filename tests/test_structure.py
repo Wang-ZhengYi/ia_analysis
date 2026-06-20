@@ -13,6 +13,7 @@ Provides
 """
 
 import importlib
+from pathlib import Path
 import subprocess
 import sys
 
@@ -81,6 +82,11 @@ def test_structured_api_registries_are_lightweight_and_discoverable():
     visualization = importlib.import_module("ia_analysis.visualization.api")
     assert "alignment_plots" in visualization.available_groups()
     assert "plot_alignment_suite" in visualization.group_exports("alignment_plots")
+
+
+def test_dynamics_has_single_tng_driver_file():
+    dynamics_dir = Path(__file__).resolve().parents[1] / "src" / "ia_analysis" / "dynamics"
+    assert sorted(path.name for path in dynamics_dir.glob("hd_tng*.py")) == ["hd_tng.py"]
 
 
 def test_package_run_cs_help():

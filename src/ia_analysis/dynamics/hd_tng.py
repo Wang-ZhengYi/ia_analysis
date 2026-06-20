@@ -3,7 +3,7 @@
 """
 hd_tng.py
 ---------
-High-level IllustrisTNG driver for shell-wise halo/subhalo dynamics.
+Canonical IllustrisTNG driver for shell-wise halo/subhalo dynamics.
 
 This module wraps the lower-level utilities in ``halo_dynamics.py`` and the
 TNG IO layer in ``TNGCatLoader.py``.  It is designed for external scripts and
@@ -18,6 +18,18 @@ notebooks that need a single callable interface, in the same spirit as a
     * compare Pi from Omega+H with the direct moment relation from dot(I);
     * optionally follow a SubLink main progenitor branch for a cross-time
       finite-difference pattern-speed test.
+
+Consolidation note
+------------------
+This file is the single maintained TNG dynamics implementation.  It contains
+the richer cross-time diagnostics that used to be split across
+``hd_tng_patched.py`` and ``hd_tng_mea_enriched.py``:
+
+    * API/cache-aware SubLink loading for cross-time tracks;
+    * redshift metadata attached to cross-time shell rows;
+    * affine decomposition into Omega and Hessian/shear contributions;
+    * backward-compatible ``Pi_direct_late`` and ``Pi_aff_late`` columns for
+      older notebooks.
 
 The default API cache policy is temporary and clean: downloaded TNG cutouts are
 placed in a private system temp directory (normally under /tmp) and deleted when
@@ -1660,18 +1672,34 @@ def cross_time_pattern_speed_for_subhalo(
 
 __all__ = [
     "DEFAULT_CFG",
+    "G_KPC_KMS2_MSUN",
     "KM_S_PER_KPC_TO_GYR_INV",
+    "boxsize_ckpc_h_from_header",
+    "build_shell_masks_for_particles",
+    "ckpc_h_to_physical_kpc",
     "cleanup_open_catalogs",
-    "read_header_for_snap",
+    "closure_table_from_analysis",
     "compute_haloes",
     "compute_many",
     "compute_one_subhalo",
-    "select_subhaloes_in_top_groups",
-    "load_subhalo_dm_particles",
-    "analyse_particle_data",
-    "closure_table_from_analysis",
-    "enrich_run_with_group_metadata",
-    "direct_pi_from_P",
+    "cosmic_time_gyr_from_header",
     "cross_time_pattern_speed_for_subhalo",
+    "default_tng_catalog_kwargs",
+    "direct_pi_from_P",
+    "dm_mass_msun_from_header",
+    "enrich_run_with_group_metadata",
+    "hubble_from_header",
+    "analyse_particle_data",
+    "load_subhalo_dm_particles",
     "load_sublink_mpb",
+    "open_catalog",
+    "read_header_for_snap",
+    "retry_call",
+    "scale_factor_from_header",
+    "select_subhaloes_in_top_groups",
+    "select_tree_rows_for_snaps",
+    "skew_components",
+    "tng_relative_positions_to_physical_kpc",
+    "tng_velocity_to_kms",
+    "tree_to_dataframe",
 ]
