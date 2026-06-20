@@ -25,6 +25,7 @@ _DOMAIN_APIS = {
     "tides": ("ia_analysis.tides.api", "Potential grids, tidal tensors, and interpolation."),
     "dynamics": ("ia_analysis.dynamics.api", "Shell-wise halo dynamics and TNG wrappers."),
     "merger_tree": ("ia_analysis.MergerTree.api", "Merger-tree reading and cross-time workflow orchestration."),
+    "correlations": ("ia_analysis.correlations.api", "Real-space IA, density, velocity, and rotation correlations."),
     "covariance": ("ia_analysis.covariance.api", "Gaussian, cNG, and SSC covariance helpers."),
     "pipelines": ("ia_analysis.pipelines.api", "Discoverable end-to-end pipeline entrypoints."),
     "orbits": ("ia_analysis.orbits.api", "NFW orbit experiments and mock halo generation."),

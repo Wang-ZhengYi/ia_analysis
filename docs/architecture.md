@@ -10,7 +10,7 @@ Low-level modules should remain reusable and should not import pipeline code:
 ```text
 catalogs / shapes / tides
         -> dynamics / MergerTree
-        -> spectra / covariance
+        -> correlations / spectra / covariance
         -> pipelines
 ```
 
@@ -23,6 +23,10 @@ merger-tree tracks and calls `catalogs`, `shapes`, and `dynamics` for the work
 done at each snapshot.
 
 `visualization` and `orbits` are side modules used by notebooks and experiments.
+
+`correlations` owns real-space object-pair statistics for density, IA shape,
+velocity, and figure-rotation fields.  It consumes catalog arrays and does not
+load simulation products directly.
 
 The `dynamics` package owns particle-level and component-level halo dynamics.
 Besides shell-wise tensor diagnostics, it now provides component binding-energy
@@ -38,6 +42,7 @@ Command-line execution should use `python -m ia_analysis.<subpackage>.<module>`.
 For non-spectra domains, prefer the structured API facade in each package:
 `ia_analysis.catalogs.api`, `ia_analysis.shapes.api`, `ia_analysis.tides.api`,
 `ia_analysis.dynamics.api`, `ia_analysis.MergerTree.api`,
+`ia_analysis.correlations.api`,
 `ia_analysis.covariance.api`,
 `ia_analysis.pipelines.api`, `ia_analysis.orbits.api`, and
 `ia_analysis.visualization.api`.  The top-level `ia_analysis.api` registry can

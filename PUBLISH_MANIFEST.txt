@@ -1,7 +1,7 @@
 ﻿ia_analysis publish manifest
 Generated from the curated src-first project tree.
 Excluded: root-level Python wrappers, raw/archive notebooks, cache directories, data products, media outputs, and CI workflow files requiring workflow OAuth scope.
-File count: 138
+File count: 148
 
 .gitignore
 LICENSE
@@ -9,6 +9,7 @@ README.md
 configs/example_paths.json
 docs/api_facades.md
 docs/architecture.md
+docs/correlations.md
 docs/merger_tree.md
 docs/notebook_exports.md
 docs/notebook_pipeline_map.md
@@ -39,6 +40,14 @@ src/ia_analysis/catalogs/TNGCatLoader.py
 src/ia_analysis/catalogs/__init__.py
 src/ia_analysis/catalogs/api.py
 src/ia_analysis/catalogs/catalog_loader.py
+src/ia_analysis/correlations/__init__.py
+src/ia_analysis/correlations/api.py
+src/ia_analysis/correlations/covariance.py
+src/ia_analysis/correlations/estimators.py
+src/ia_analysis/correlations/fields.py
+src/ia_analysis/correlations/four_point.py
+src/ia_analysis/correlations/io.py
+src/ia_analysis/correlations/suite.py
 src/ia_analysis/covariance/Cov.py
 src/ia_analysis/covariance/__init__.py
 src/ia_analysis/covariance/api.py
@@ -135,6 +144,7 @@ src/ia_analysis/visualization/shell_plots.py
 src/ia_analysis/visualization/spectrum_plots.py
 src/ia_analysis/visualization/tng_dynamics_plots.py
 tests/test_catalogs.py
+tests/test_correlations.py
 tests/test_dynamics_binding.py
 tests/test_shapes.py
 tests/test_structure.py

@@ -8,7 +8,8 @@ This top-level package exposes only lightweight metadata so importing
 Provides
 --------
 - The canonical package namespace for catalogs, shapes, tides, dynamics,
-  merger trees, spectra, covariance, pipelines, orbits, and visualization.
+  merger trees, correlations, spectra, covariance, pipelines, orbits, and
+  visualization.
 - Version metadata for downstream scripts and notebooks.
 
 Notes

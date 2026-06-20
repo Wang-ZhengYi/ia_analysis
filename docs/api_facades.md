@@ -17,7 +17,8 @@ api.load_domain_api("catalogs")
 ```
 
 The registry currently covers `catalogs`, `shapes`, `tides`, `dynamics`,
-`merger_tree`, `covariance`, `pipelines`, `orbits`, and `visualization`.
+`merger_tree`, `correlations`, `covariance`, `pipelines`, `orbits`, and
+`visualization`.
 
 ## Recommended Imports
 
@@ -56,6 +57,12 @@ Merger-tree tracks and cross-time workflows:
 
 ```python
 from ia_analysis.MergerTree import build_main_progenitor_track, run_cross_time_workflow
+```
+
+Real-space correlations:
+
+```python
+from ia_analysis.correlations import CorrelationCatalog, measure_default_correlations
 ```
 
 Covariance products:

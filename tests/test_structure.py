@@ -35,6 +35,14 @@ def test_subpackage_smoke_imports():
         "ia_analysis.MergerTree.reader",
         "ia_analysis.MergerTree.workflow",
         "ia_analysis.MergerTree.storage",
+        "ia_analysis.correlations",
+        "ia_analysis.correlations.api",
+        "ia_analysis.correlations.fields",
+        "ia_analysis.correlations.estimators",
+        "ia_analysis.correlations.covariance",
+        "ia_analysis.correlations.four_point",
+        "ia_analysis.correlations.suite",
+        "ia_analysis.correlations.io",
         "ia_analysis.meshes",
         "ia_analysis.meshes.CatMesh",
         "ia_analysis.meshes.SnapMesh",
@@ -85,6 +93,7 @@ def test_structured_api_registries_are_lightweight_and_discoverable():
     api = importlib.import_module("ia_analysis.api")
     assert "catalogs" in api.available_domains()
     assert "merger_tree" in api.available_domains()
+    assert "correlations" in api.available_domains()
     assert api.load_domain_api("pipelines").pipeline_module("cs-global") == "ia_analysis.pipelines.run_cs"
 
     catalogs = importlib.import_module("ia_analysis.catalogs.api")
@@ -93,6 +102,9 @@ def test_structured_api_registries_are_lightweight_and_discoverable():
 
     pipelines = importlib.import_module("ia_analysis.pipelines")
     assert pipelines.pipeline_command("tng-layered") == ("python", "-m", "ia_analysis.pipelines.tng_layered_shape_tide")
+
+    correlations = importlib.import_module("ia_analysis.correlations.api")
+    assert correlations.DETAILED_CATEGORIES == ("1h_cs", "1h_ss", "2h_cc", "2h_cs", "2h_ss")
 
     visualization = importlib.import_module("ia_analysis.visualization.api")
     assert "alignment_plots" in visualization.available_groups()
