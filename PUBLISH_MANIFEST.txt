@@ -1,7 +1,7 @@
-﻿ia_analysis publish manifest
+ia_analysis publish manifest
 Generated from the curated src-first project tree.
 Excluded: root-level Python wrappers, raw/archive notebooks, cache directories, data products, media outputs, and CI workflow files requiring workflow OAuth scope.
-File count: 128
+File count: 129
 
 .gitignore
 configs/example_paths.json
@@ -126,6 +126,7 @@ src/ia_analysis/visualization/projection_geometry.py
 src/ia_analysis/visualization/scene3d.py
 src/ia_analysis/visualization/shell_plots.py
 tests/test_catalogs.py
+tests/test_dynamics_binding.py
 tests/test_shapes.py
 tests/test_structure.py
 tests/test_tides.py
