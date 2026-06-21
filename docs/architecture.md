@@ -23,6 +23,9 @@ merger-tree tracks and calls `catalogs`, `shapes`, and `dynamics` for the work
 done at each snapshot.
 
 `visualization` and `orbits` are side modules used by notebooks and experiments.
+The `orbits` package now also contains a planned 2LPT-template layer for
+Pinocchio-like merger trees, group-internal subhalo phase-space templates, and
+ellipsoidal approximations for HOD one-halo augmentation.
 
 `correlations` owns real-space object-pair statistics for density, IA shape,
 velocity, and figure-rotation fields.  It consumes catalog arrays and does not

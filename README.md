@@ -64,7 +64,8 @@ Important subpackages:
 - `ia_analysis.covariance`: Gaussian, cNG, and SSC covariance helpers for
   measured spectra.
 - `ia_analysis.pipelines`: end-to-end ClusterSims and TNG command entrypoints.
-- `ia_analysis.orbits`: NFW orbit experiments and mock halo generation.
+- `ia_analysis.orbits`: NFW orbit experiments, mock halo generation, 2LPT
+  orbit-template libraries, and ellipsoidal group approximations.
 - `ia_analysis.visualization`: plotting, figure-saving, atlas, diagnostic, and
   animation helpers.
 
@@ -294,6 +295,8 @@ run separately in the data environment.
 - `docs/merger_tree.md`: merger-tree and cross-time workflow steps.
 - `docs/correlations.md`: real-space correlation categories, covariance, and
   four-point products.
+- `docs/orbit_template_plan.md`: 2LPT/Pinocchio orbit-template plan for HOD
+  one-halo augmentation and ellipsoidal shape modeling.
 - `docs/running.md`: CLI entrypoints, configuration, and environment variables.
 - `docs/visualization.md`: structured visualization module map.
 - `docs/velocity_divergence_self_folding.md`: velocity-divergence folding

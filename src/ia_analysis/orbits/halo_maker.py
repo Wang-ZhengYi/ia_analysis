@@ -23,6 +23,15 @@ catalog loaders used by production ClusterSims or TNG analyses.
 
 import numpy as np
 
+try:
+    from numba import njit
+except Exception:  # pragma: no cover - lightweight fallback for environments without numba
+    def njit(func=None, **_kwargs):
+        """Return the original function when Numba is unavailable."""
+        if func is None:
+            return lambda wrapped: wrapped
+        return func
+
 def gen_nfw(rs=1.0, size=1000, r_min=0.01, r_max=10.0):
     """
     Generate 3D points distributed according to an NFW radial density profile.
@@ -52,9 +61,9 @@ def gen_nfw(rs=1.0, size=1000, r_min=0.01, r_max=10.0):
     # Sample radial distances according to the power-law profile
     r_grid = np.linspace(r_min, r_max, 1000)
     
-    # Calculate NFW number density (proportional to r²ρ(r))
-    # NFW density: ρ(r) ∝ 1/(r(rs + r)^2)
-    # Radial PDF for points: dN/dr ∝ r² ρ(r) ∝ r/(rs + r)^2
+    # Calculate the radial point PDF for an NFW-like density profile.
+    # If rho(r) is proportional to 1 / (r * (rs + r)^2), then dN/dr is
+    # proportional to r / (rs + r)^2.
     radial_pdf = r_grid/ (rs + r_grid)**2#np.exp(-r_grid**2/rs**2/2) #
     radial_pdf /= np.trapz(radial_pdf, r_grid)  # normalize
     cdf = np.cumsum(radial_pdf) * (r_grid[1] - r_grid[0])
@@ -138,7 +147,7 @@ def create_rotation_matrix(principal_axis):
                          [ 0.0,  1.0,  0.0],
                          [ 0.0,  0.0, -1.0]])
 
-    # Rotation axis v = x_axis × principal_axis
+    # Rotation axis v = x_axis cross principal_axis.
     v = np.cross(x_axis, principal_axis)
     s = np.linalg.norm(v)
     # Build cross-product matrix [v]_x

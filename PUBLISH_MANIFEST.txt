@@ -1,7 +1,7 @@
 ﻿ia_analysis publish manifest
 Generated from the curated src-first project tree.
 Excluded: root-level Python wrappers, raw/archive notebooks, cache directories, data products, media outputs, and CI workflow files requiring workflow OAuth scope.
-File count: 150
+File count: 155
 
 .gitattributes
 .gitignore
@@ -15,6 +15,7 @@ docs/ia_analysis_user_manual.pdf
 docs/merger_tree.md
 docs/notebook_exports.md
 docs/notebook_pipeline_map.md
+docs/orbit_template_plan.md
 docs/running.md
 docs/velocity_divergence_self_folding.md
 docs/visualization.md
@@ -89,8 +90,11 @@ src/ia_analysis/notebook_pipelines/exports/tngcatloader_test_nb.py
 src/ia_analysis/notebook_pipelines/exports/tri3d_nb.py
 src/ia_analysis/orbits/__init__.py
 src/ia_analysis/orbits/api.py
+src/ia_analysis/orbits/ellipsoidal_model.py
 src/ia_analysis/orbits/halo_maker.py
 src/ia_analysis/orbits/orbit_nfw.py
+src/ia_analysis/orbits/pinocchio.py
+src/ia_analysis/orbits/template_orbits.py
 src/ia_analysis/pipelines/__init__.py
 src/ia_analysis/pipelines/api.py
 src/ia_analysis/pipelines/global_cs.py
@@ -148,6 +152,7 @@ src/ia_analysis/visualization/tng_dynamics_plots.py
 tests/test_catalogs.py
 tests/test_correlations.py
 tests/test_dynamics_binding.py
+tests/test_orbit_templates.py
 tests/test_shapes.py
 tests/test_structure.py
 tests/test_tides.py

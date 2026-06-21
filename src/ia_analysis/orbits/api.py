@@ -3,13 +3,16 @@
 Purpose
 -------
 Orbit experiments combine mock halo generation, NFW host profiles, integration,
-and visualization inputs.  This facade exposes those pieces with clear names
-while leaving the historical numerical implementations in place.
+2LPT merger-tree orbit templates, ellipsoidal group approximations, and
+visualization inputs.  This facade exposes those pieces with clear names while
+leaving the historical numerical implementations in place.
 
 Provides
 --------
 - Mock NFW point-cloud generation and ellipsoidal transformations.
 - NFW host, orbit simulator, and result-container aliases.
+- Pinocchio-like tree adapters and relative subhalo orbit templates.
+- Ellipsoidal tidal approximations and phase-space perturbation averages.
 - Unit-conversion and dynamical-friction helpers for controlled experiments.
 """
 
@@ -26,6 +29,29 @@ _EXPORTS: ExportMap = {
     "NFWHost": ("ia_analysis.orbits.orbit_nfw", "NFWHost"),
     "OrbitSimulator": ("ia_analysis.orbits.orbit_nfw", "OrbitSimulator"),
     "OrbitResult": ("ia_analysis.orbits.orbit_nfw", "OrbitResult"),
+    "TreeTrack": ("ia_analysis.orbits.template_orbits", "TreeTrack"),
+    "OrbitTemplate": ("ia_analysis.orbits.template_orbits", "OrbitTemplate"),
+    "OrbitTemplateLibrary": ("ia_analysis.orbits.template_orbits", "OrbitTemplateLibrary"),
+    "build_orbit_template": ("ia_analysis.orbits.template_orbits", "build_orbit_template"),
+    "build_template_library": ("ia_analysis.orbits.template_orbits", "build_template_library"),
+    "template_feature_vector": ("ia_analysis.orbits.template_orbits", "template_feature_vector"),
+    "hod_1h_orbit_kernel": ("ia_analysis.orbits.template_orbits", "hod_1h_orbit_kernel"),
+    "orbit_template_roadmap": ("ia_analysis.orbits.template_orbits", "orbit_template_roadmap"),
+    "PinocchioColumnMap": ("ia_analysis.orbits.pinocchio", "PinocchioColumnMap"),
+    "tracks_from_table": ("ia_analysis.orbits.pinocchio", "tracks_from_table"),
+    "host_map_from_table": ("ia_analysis.orbits.pinocchio", "host_map_from_table"),
+    "build_pinocchio_template_library": ("ia_analysis.orbits.pinocchio", "build_pinocchio_template_library"),
+    "EllipsoidalGroupModel": ("ia_analysis.orbits.ellipsoidal_model", "EllipsoidalGroupModel"),
+    "PhaseSpacePerturbationModel": ("ia_analysis.orbits.ellipsoidal_model", "PhaseSpacePerturbationModel"),
+    "homogeneous_ellipsoid_tidal_tensor": (
+        "ia_analysis.orbits.ellipsoidal_model",
+        "homogeneous_ellipsoid_tidal_tensor",
+    ),
+    "coherent_layer_shapes": ("ia_analysis.orbits.ellipsoidal_model", "coherent_layer_shapes"),
+    "tidal_aligned_shape": ("ia_analysis.orbits.ellipsoidal_model", "tidal_aligned_shape"),
+    "perturb_orbit_template": ("ia_analysis.orbits.ellipsoidal_model", "perturb_orbit_template"),
+    "perturbation_average_features": ("ia_analysis.orbits.ellipsoidal_model", "perturbation_average_features"),
+    "initial_shape_alignment_model": ("ia_analysis.orbits.ellipsoidal_model", "initial_shape_alignment_model"),
     "default_tng_cosmology": ("ia_analysis.orbits.orbit_nfw", "default_tng_cosmology"),
     "chandrasekhar_df_accel_kpc": ("ia_analysis.orbits.orbit_nfw", "chandrasekhar_df_accel_kpc"),
     "ckpc_h_to_kpc_phys": ("ia_analysis.orbits.orbit_nfw", "ckpc_h_to_kpc_phys"),
