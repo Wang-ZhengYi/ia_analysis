@@ -60,6 +60,7 @@ def test_subpackage_smoke_imports():
         "ia_analysis.orbits.template_orbits",
         "ia_analysis.orbits.pinocchio",
         "ia_analysis.orbits.ellipsoidal_model",
+        "ia_analysis.orbits.tidal_stripping",
         "ia_analysis.visualization",
         "ia_analysis.visualization.api",
         "ia_analysis.visualization.figure_io",
@@ -112,6 +113,7 @@ def test_structured_api_registries_are_lightweight_and_discoverable():
     orbits = importlib.import_module("ia_analysis.orbits.api")
     assert "build_pinocchio_template_library" in orbits.__all__
     assert "initial_shape_alignment_model" in orbits.__all__
+    assert "build_stripping_history" in orbits.__all__
 
     visualization = importlib.import_module("ia_analysis.visualization.api")
     assert "alignment_plots" in visualization.available_groups()

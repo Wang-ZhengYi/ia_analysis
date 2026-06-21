@@ -12,6 +12,7 @@ Provides
 - Orbit integration and shell-visualization inputs.
 - Pinocchio-like tree adapters for group-internal subhalo orbit templates.
 - Ellipsoidal tidal and phase-space perturbation models for HOD one-halo terms.
+- Tidal-stripping post-processing and tidal-track diagnostics.
 - Lightweight utilities used by curated orbit notebooks.
 """
 
@@ -42,6 +43,13 @@ _EXPORTS: ExportMap = {
     "homogeneous_ellipsoid_tidal_tensor": ("ia_analysis.orbits.api", "homogeneous_ellipsoid_tidal_tensor"),
     "initial_shape_alignment_model": ("ia_analysis.orbits.api", "initial_shape_alignment_model"),
     "perturbation_average_features": ("ia_analysis.orbits.api", "perturbation_average_features"),
+    "TidalStrippingOptions": ("ia_analysis.orbits.api", "TidalStrippingOptions"),
+    "TidalStrippingHistory": ("ia_analysis.orbits.api", "TidalStrippingHistory"),
+    "jacobi_tidal_radius": ("ia_analysis.orbits.api", "jacobi_tidal_radius"),
+    "build_stripping_history": ("ia_analysis.orbits.api", "build_stripping_history"),
+    "stripping_history_from_template": ("ia_analysis.orbits.api", "stripping_history_from_template"),
+    "tidal_track_vmax_rmax": ("ia_analysis.orbits.api", "tidal_track_vmax_rmax"),
+    "stripping_summary": ("ia_analysis.orbits.api", "stripping_summary"),
 }
 
 __all__ = [
@@ -52,6 +60,7 @@ __all__ = [
     "template_orbits",
     "pinocchio",
     "ellipsoidal_model",
+    "tidal_stripping",
 ]
 
 

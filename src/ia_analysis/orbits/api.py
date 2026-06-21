@@ -13,6 +13,7 @@ Provides
 - NFW host, orbit simulator, and result-container aliases.
 - Pinocchio-like tree adapters and relative subhalo orbit templates.
 - Ellipsoidal tidal approximations and phase-space perturbation averages.
+- Lightweight tidal-stripping histories and tidal-track diagnostics.
 - Unit-conversion and dynamical-friction helpers for controlled experiments.
 """
 
@@ -52,6 +53,17 @@ _EXPORTS: ExportMap = {
     "perturb_orbit_template": ("ia_analysis.orbits.ellipsoidal_model", "perturb_orbit_template"),
     "perturbation_average_features": ("ia_analysis.orbits.ellipsoidal_model", "perturbation_average_features"),
     "initial_shape_alignment_model": ("ia_analysis.orbits.ellipsoidal_model", "initial_shape_alignment_model"),
+    "TidalStrippingOptions": ("ia_analysis.orbits.tidal_stripping", "TidalStrippingOptions"),
+    "TidalStrippingHistory": ("ia_analysis.orbits.tidal_stripping", "TidalStrippingHistory"),
+    "jacobi_tidal_radius": ("ia_analysis.orbits.tidal_stripping", "jacobi_tidal_radius"),
+    "instantaneous_power_law_target": (
+        "ia_analysis.orbits.tidal_stripping",
+        "instantaneous_power_law_target",
+    ),
+    "build_stripping_history": ("ia_analysis.orbits.tidal_stripping", "build_stripping_history"),
+    "stripping_history_from_template": ("ia_analysis.orbits.tidal_stripping", "stripping_history_from_template"),
+    "tidal_track_vmax_rmax": ("ia_analysis.orbits.tidal_stripping", "tidal_track_vmax_rmax"),
+    "stripping_summary": ("ia_analysis.orbits.tidal_stripping", "stripping_summary"),
     "default_tng_cosmology": ("ia_analysis.orbits.orbit_nfw", "default_tng_cosmology"),
     "chandrasekhar_df_accel_kpc": ("ia_analysis.orbits.orbit_nfw", "chandrasekhar_df_accel_kpc"),
     "ckpc_h_to_kpc_phys": ("ia_analysis.orbits.orbit_nfw", "ckpc_h_to_kpc_phys"),

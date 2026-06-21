@@ -29,6 +29,8 @@ This document maps raw notebooks to curated workflows and reusable Python code.
 
 ## Orbits And 3D Visualization
 
-- Raw notebooks: `orbit.ipynb`, `tri3D.ipynb`.
-- Maintained notebook: `07_orbits_and_shell_visualization.ipynb`.
-- Reusable modules: `ia_analysis.orbits`, `ia_analysis.visualization`.
+- Raw notebooks: `orbit.ipynb`, `tri3D.ipynb`, `merger_stripping.ipynb`.
+- Maintained notebooks: `07_orbits_and_shell_visualization.ipynb`,
+  `08_orbit_template_tidal_stripping_demo.ipynb`.
+- Reusable modules: `ia_analysis.orbits`, `ia_analysis.orbits.tidal_stripping`,
+  `ia_analysis.visualization`.

@@ -1,7 +1,7 @@
-﻿ia_analysis publish manifest
+ia_analysis publish manifest
 Generated from the curated src-first project tree.
 Excluded: root-level Python wrappers, raw/archive notebooks, cache directories, data products, media outputs, and CI workflow files requiring workflow OAuth scope.
-File count: 155
+File count: 159
 
 .gitattributes
 .gitignore
@@ -17,8 +17,10 @@ docs/notebook_exports.md
 docs/notebook_pipeline_map.md
 docs/orbit_template_plan.md
 docs/running.md
+docs/tidal_stripping_literature.md
 docs/velocity_divergence_self_folding.md
 docs/visualization.md
+notebooks/README.md
 notebooks/pipelines/00_project_overview_and_paths.ipynb
 notebooks/pipelines/01_global_catalog_generation.ipynb
 notebooks/pipelines/02_alignment_figure_suite.ipynb
@@ -27,6 +29,7 @@ notebooks/pipelines/04_power_spectrum_pipeline.ipynb
 notebooks/pipelines/05_correlation_pipeline.ipynb
 notebooks/pipelines/06_tng_dynamics_layered_pipeline.ipynb
 notebooks/pipelines/07_orbits_and_shell_visualization.ipynb
+notebooks/pipelines/08_orbit_template_tidal_stripping_demo.ipynb
 pyproject.toml
 requirements/core.txt
 requirements/cosma.txt
@@ -95,6 +98,7 @@ src/ia_analysis/orbits/halo_maker.py
 src/ia_analysis/orbits/orbit_nfw.py
 src/ia_analysis/orbits/pinocchio.py
 src/ia_analysis/orbits/template_orbits.py
+src/ia_analysis/orbits/tidal_stripping.py
 src/ia_analysis/pipelines/__init__.py
 src/ia_analysis/pipelines/api.py
 src/ia_analysis/pipelines/global_cs.py

@@ -85,6 +85,7 @@ Orbit experiments:
 from ia_analysis.orbits import generate_mock_halo, run_orbit
 from ia_analysis.orbits import build_pinocchio_template_library
 from ia_analysis.orbits import EllipsoidalGroupModel, initial_shape_alignment_model
+from ia_analysis.orbits import TidalStrippingOptions, stripping_history_from_template
 ```
 
 Visualization:

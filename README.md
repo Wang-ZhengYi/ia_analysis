@@ -65,7 +65,8 @@ Important subpackages:
   measured spectra.
 - `ia_analysis.pipelines`: end-to-end ClusterSims and TNG command entrypoints.
 - `ia_analysis.orbits`: NFW orbit experiments, mock halo generation, 2LPT
-  orbit-template libraries, and ellipsoidal group approximations.
+  orbit-template libraries, ellipsoidal group approximations, and lightweight
+  tidal-stripping post-processing.
 - `ia_analysis.visualization`: plotting, figure-saving, atlas, diagnostic, and
   animation helpers.
 
@@ -264,6 +265,7 @@ Maintained notebooks live in `notebooks/pipelines`:
 - `05_correlation_pipeline.ipynb`
 - `06_tng_dynamics_layered_pipeline.ipynb`
 - `07_orbits_and_shell_visualization.ipynb`
+- `08_orbit_template_tidal_stripping_demo.ipynb`
 
 Raw notebook exports are kept under `src/ia_analysis/notebook_pipelines/exports`
 for review and gradual migration into reusable modules.  New reusable plotting
@@ -297,6 +299,8 @@ run separately in the data environment.
   four-point products.
 - `docs/orbit_template_plan.md`: 2LPT/Pinocchio orbit-template plan for HOD
   one-halo augmentation and ellipsoidal shape modeling.
+- `docs/tidal_stripping_literature.md`: tidal-stripping literature notes,
+  lightweight algorithm choices, and calibration roadmap.
 - `docs/running.md`: CLI entrypoints, configuration, and environment variables.
 - `docs/visualization.md`: structured visualization module map.
 - `docs/velocity_divergence_self_folding.md`: velocity-divergence folding
