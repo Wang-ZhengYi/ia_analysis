@@ -1,7 +1,7 @@
 ia_analysis publish manifest
 Generated from the curated src-first project tree.
 Excluded: root-level Python wrappers, raw/archive notebooks, cache directories, data products, media outputs, and CI workflow files requiring workflow OAuth scope.
-File count: 159
+File count: 163
 
 .gitattributes
 .gitignore
@@ -20,6 +20,7 @@ docs/running.md
 docs/tidal_stripping_literature.md
 docs/velocity_divergence_self_folding.md
 docs/visualization.md
+docs/wsl_jupyter_orbits.md
 notebooks/README.md
 notebooks/pipelines/00_project_overview_and_paths.ipynb
 notebooks/pipelines/01_global_catalog_generation.ipynb
@@ -34,6 +35,8 @@ pyproject.toml
 requirements/core.txt
 requirements/cosma.txt
 requirements/dev.txt
+requirements/orbits-conda.yml
+requirements/orbits-full-conda.yml
 src/ia_analysis/MergerTree/__init__.py
 src/ia_analysis/MergerTree/api.py
 src/ia_analysis/MergerTree/reader.py
@@ -162,3 +165,4 @@ tests/test_structure.py
 tests/test_tides.py
 tools/create_pipeline_notebooks.py
 tools/export_notebooks.py
+tools/wsl_jupyter_orbits.sh

@@ -1,0 +1,23 @@
+name: ia-orbits
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10,<3.13
+  - numpy
+  - scipy
+  - h5py
+  - numba
+  - matplotlib
+  - seaborn
+  - pandas
+  - tqdm
+  - psutil
+  - pillow
+  - jupyterlab
+  - ipykernel
+  - ipywidgets
+  - nbformat
+  - pytest
+  - pip
+  - pip:
+      - -e .

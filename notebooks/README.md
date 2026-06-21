@@ -39,3 +39,16 @@ Code cells from raw notebooks are exported to
 When adding new notebook code, first move reusable functions into
 `src/ia_analysis`, then keep notebooks as orchestration and visualization
 records.
+
+## WSL JupyterLab
+
+For the orbit notebooks, open WSL and run:
+
+```bash
+cd /mnt/c/Users/hydro/Workspace/MSTA
+bash tools/wsl_jupyter_orbits.sh
+```
+
+Then select the `Python (ia-orbits)` kernel in JupyterLab.  The full setup and
+the optional `pyccl` environment are documented in
+`docs/wsl_jupyter_orbits.md`.

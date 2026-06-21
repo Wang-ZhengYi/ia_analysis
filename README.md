@@ -114,6 +114,19 @@ COSMA/HPC-specific dependencies are listed in `requirements/cosma.txt`.  Some
 of those packages, such as Pylians, `illustris_python`, `halotools`, or `pyccl`,
 may need local cluster modules or non-standard installation steps.
 
+For WSL Anaconda/JupyterLab orbit notebooks, use the maintained conda files and
+launcher:
+
+```bash
+cd /mnt/c/Users/hydro/Workspace/MSTA
+bash tools/wsl_jupyter_orbits.sh
+```
+
+This creates the `ia-orbits` environment, registers the `Python (ia-orbits)`
+kernel, and starts JupyterLab at the project root.  Use
+`requirements/orbits-full-conda.yml` when full `pyccl` orbit integration is
+needed.
+
 ## Configuration And Data Paths
 
 Use CLI flags, environment variables, or `configs/example_paths.json` rather
@@ -302,6 +315,8 @@ run separately in the data environment.
 - `docs/tidal_stripping_literature.md`: tidal-stripping literature notes,
   lightweight algorithm choices, and calibration roadmap.
 - `docs/running.md`: CLI entrypoints, configuration, and environment variables.
+- `docs/wsl_jupyter_orbits.md`: WSL Anaconda and JupyterLab setup for orbit
+  notebooks.
 - `docs/visualization.md`: structured visualization module map.
 - `docs/velocity_divergence_self_folding.md`: velocity-divergence folding
   decision and the `tm` momentum-divergence proxy.
