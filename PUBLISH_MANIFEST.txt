@@ -1,8 +1,9 @@
 ﻿ia_analysis publish manifest
 Generated from the curated src-first project tree.
 Excluded: root-level Python wrappers, raw/archive notebooks, cache directories, data products, media outputs, and CI workflow files requiring workflow OAuth scope.
-File count: 148
+File count: 150
 
+.gitattributes
 .gitignore
 LICENSE
 README.md
@@ -10,6 +11,7 @@ configs/example_paths.json
 docs/api_facades.md
 docs/architecture.md
 docs/correlations.md
+docs/ia_analysis_user_manual.pdf
 docs/merger_tree.md
 docs/notebook_exports.md
 docs/notebook_pipeline_map.md
