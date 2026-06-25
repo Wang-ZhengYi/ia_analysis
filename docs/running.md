@@ -54,3 +54,18 @@ tracks = tracks_from_table(table, columns=columns)
 
 The reader does not assign scientific meaning to columns. Use
 `PinocchioColumnMap` to adapt each catalog schema.
+
+## Synthetic HOD and IA-HOD Analysis
+
+The HOD layer accepts in-memory mappings, structured NumPy arrays, or pandas
+DataFrames and does not require simulation-specific readers:
+
+```python
+from ia_analysis.hod import standardize_hod_catalog, measure_hod
+
+catalog = standardize_hod_catalog(halo_table, galaxy_table)
+measurement = measure_hod(catalog, mass_bins=mass_edges, sample_label="LRG")
+```
+
+See `docs/hod.md` for assembly, phase-space, IA-component, fitting, plotting,
+and serialization examples.

@@ -25,6 +25,9 @@ entrypoints with `python -m ia_analysis.<subpackage>.<module>`.
   compact `v-e-d-omega` four-point diagnostic.
 - Mesh and spectrum tools for galaxy/particle meshes, IA power spectra, folded
   spectra, velocity momentum-divergence proxies, and NLA theory helpers.
+- HOD tools for ordinary and assembly-biased occupation, satellite phase space,
+  component-level IA measurements, conditional IA strength, and lightweight
+  omega/eta validation.
 - Covariance tools for Gaussian, connected non-Gaussian, and super-sample
   covariance products used by the power-spectrum workflow.
 - Visualization helpers migrated from notebooks into reusable modules for
@@ -67,6 +70,8 @@ Important subpackages:
 - `ia_analysis.orbits`: NFW orbit experiments, mock halo generation, 2LPT
   orbit-template libraries, ellipsoidal group approximations, and lightweight
   tidal-stripping post-processing.
+- `ia_analysis.hod`: ordinary, decorated, environment/concentration,
+  phase-space, and component-based assembly-biased IA-HOD models.
 - `ia_analysis.visualization`: plotting, figure-saving, atlas, diagnostic, and
   animation helpers.
 
@@ -77,7 +82,7 @@ remain reusable and should not import high-level orchestration code:
 
 ```text
 catalogs / shapes / tides
-        -> dynamics / MergerTree
+        -> hod / dynamics / MergerTree
         -> correlations / spectra / covariance
         -> pipelines
 ```
@@ -154,7 +159,7 @@ shape_api = api.load_domain_api("shapes")
 ```
 
 Current domains include `catalogs`, `shapes`, `tides`, `dynamics`,
-`merger_tree`, `correlations`, `covariance`, `pipelines`, `orbits`, and
+`merger_tree`, `hod`, `correlations`, `covariance`, `pipelines`, `orbits`, and
 `visualization`.
 
 ## Common Usage Examples
