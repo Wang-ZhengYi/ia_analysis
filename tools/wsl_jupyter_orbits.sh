@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Start JupyterLab for the orbit notebooks from WSL.
 #
-# Usage from the project root or any subdirectory:
+# From the project root:
 #   bash tools/wsl_jupyter_orbits.sh
+#
+# From another directory, provide the correct relative or absolute script path:
+#   bash /path/to/ia_analysis/tools/wsl_jupyter_orbits.sh
 #
 # Optional environment variables:
 #   IA_ORBITS_ENV=ia-orbits-full

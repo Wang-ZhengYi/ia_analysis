@@ -16,7 +16,7 @@ python -m ia_analysis.covariance.Cov --help
 The maintained orbit notebooks can be run from WSL with the Anaconda launcher:
 
 ```bash
-cd /mnt/c/Users/hydro/Workspace/MSTA
+cd /mnt/c/Users/<your-user>/Workspace/ia_analysis
 bash tools/wsl_jupyter_orbits.sh
 ```
 
@@ -24,6 +24,8 @@ The launcher creates or reuses the `ia-orbits` conda environment, installs the
 package in editable mode, registers the `Python (ia-orbits)` kernel, and starts
 JupyterLab at the project root.  See `docs/wsl_jupyter_orbits.md` for the full
 workflow and the optional `ia-orbits-full` environment with `pyccl`.
+When running from outside the project root, give the correct relative or
+absolute path to `tools/wsl_jupyter_orbits.sh`.
 
 ## Configuration
 

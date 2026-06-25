@@ -18,8 +18,16 @@ imports `pyccl`.
 Open a WSL terminal and move to the Windows workspace through the WSL mount:
 
 ```bash
-cd /mnt/c/Users/hydro/Workspace/MSTA
+cd /mnt/c/Users/<your-user>/Workspace/ia_analysis
 bash tools/wsl_jupyter_orbits.sh
+```
+
+The command above assumes the current directory is the project root. From
+another directory, invoke the launcher with the correct relative or absolute
+path, for example:
+
+```bash
+bash /path/to/ia_analysis/tools/wsl_jupyter_orbits.sh
 ```
 
 The script will:
@@ -38,7 +46,7 @@ Open the JupyterLab URL printed by the terminal, then choose the kernel
 Use this variant when you need the full NFW orbit integrator with `pyccl`:
 
 ```bash
-cd /mnt/c/Users/hydro/Workspace/MSTA
+cd /mnt/c/Users/<your-user>/Workspace/ia_analysis
 IA_ORBITS_ENV=ia-orbits-full \
 IA_ORBITS_ENV_FILE=requirements/orbits-full-conda.yml \
 bash tools/wsl_jupyter_orbits.sh
@@ -51,14 +59,14 @@ This registers the kernel `Python (ia-orbits-full)`.
 If dependencies changed, request an environment update before JupyterLab starts:
 
 ```bash
-cd /mnt/c/Users/hydro/Workspace/MSTA
+cd /mnt/c/Users/<your-user>/Workspace/ia_analysis
 IA_ORBITS_UPDATE=1 bash tools/wsl_jupyter_orbits.sh
 ```
 
 For the full environment:
 
 ```bash
-cd /mnt/c/Users/hydro/Workspace/MSTA
+cd /mnt/c/Users/<your-user>/Workspace/ia_analysis
 IA_ORBITS_ENV=ia-orbits-full \
 IA_ORBITS_ENV_FILE=requirements/orbits-full-conda.yml \
 IA_ORBITS_UPDATE=1 \
@@ -70,7 +78,7 @@ bash tools/wsl_jupyter_orbits.sh
 The script is only a convenience wrapper.  The equivalent manual setup is:
 
 ```bash
-cd /mnt/c/Users/hydro/Workspace/MSTA
+cd /mnt/c/Users/<your-user>/Workspace/ia_analysis
 conda env create -f requirements/orbits-conda.yml
 conda activate ia-orbits
 python -m pip install -e .
