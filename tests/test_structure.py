@@ -61,6 +61,23 @@ def test_subpackage_smoke_imports():
         "ia_analysis.orbits.pinocchio",
         "ia_analysis.orbits.ellipsoidal_model",
         "ia_analysis.orbits.tidal_stripping",
+        "ia_analysis.hod",
+        "ia_analysis.hod.api",
+        "ia_analysis.hod.catalog",
+        "ia_analysis.hod.statistics",
+        "ia_analysis.hod.models",
+        "ia_analysis.hod.assembly",
+        "ia_analysis.hod.environment",
+        "ia_analysis.hod.concentration",
+        "ia_analysis.hod.phase_space",
+        "ia_analysis.hod.ia_reference",
+        "ia_analysis.hod.ia_measurements",
+        "ia_analysis.hod.ia_models",
+        "ia_analysis.hod.ia_forward",
+        "ia_analysis.hod.fitting",
+        "ia_analysis.hod.covariance",
+        "ia_analysis.hod.plotting",
+        "ia_analysis.hod.io",
         "ia_analysis.visualization",
         "ia_analysis.visualization.api",
         "ia_analysis.visualization.figure_io",
@@ -98,6 +115,7 @@ def test_structured_api_registries_are_lightweight_and_discoverable():
     assert "catalogs" in api.available_domains()
     assert "merger_tree" in api.available_domains()
     assert "correlations" in api.available_domains()
+    assert "hod" in api.available_domains()
     assert api.load_domain_api("pipelines").pipeline_module("cs-global") == "ia_analysis.pipelines.run_cs"
 
     catalogs = importlib.import_module("ia_analysis.catalogs.api")

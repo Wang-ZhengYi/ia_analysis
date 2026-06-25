@@ -9,7 +9,7 @@ Low-level modules should remain reusable and should not import pipeline code:
 
 ```text
 catalogs / shapes / tides
-        -> dynamics / MergerTree
+        -> hod / dynamics / MergerTree
         -> correlations / spectra / covariance
         -> pipelines
 ```
@@ -31,6 +31,11 @@ ellipsoidal approximations for HOD one-halo augmentation.
 velocity, and figure-rotation fields.  It consumes catalog arrays and does not
 load simulation products directly.
 
+`hod` owns catalog-level occupation, fixed-mass assembly splits, satellite
+phase-space summaries, and component-based IA-HOD models. It consumes
+standardized arrays or tables and may provide lightweight validation summaries;
+it does not import simulation readers or pipeline orchestration.
+
 The `dynamics` package owns particle-level and component-level halo dynamics.
 Besides shell-wise tensor diagnostics, it now provides component binding-energy
 profiles: array-level helpers live in `halo_dynamics.py`, while TNG catalog
@@ -46,6 +51,7 @@ For non-spectra domains, prefer the structured API facade in each package:
 `ia_analysis.catalogs.api`, `ia_analysis.shapes.api`, `ia_analysis.tides.api`,
 `ia_analysis.dynamics.api`, `ia_analysis.MergerTree.api`,
 `ia_analysis.correlations.api`,
+`ia_analysis.hod.api`,
 `ia_analysis.covariance.api`,
 `ia_analysis.pipelines.api`, `ia_analysis.orbits.api`, and
 `ia_analysis.visualization.api`.  The top-level `ia_analysis.api` registry can

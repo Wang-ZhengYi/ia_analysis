@@ -29,6 +29,7 @@ _DOMAIN_APIS = {
     "covariance": ("ia_analysis.covariance.api", "Gaussian, cNG, and SSC covariance helpers."),
     "pipelines": ("ia_analysis.pipelines.api", "Discoverable end-to-end pipeline entrypoints."),
     "orbits": ("ia_analysis.orbits.api", "NFW orbit experiments and mock halo generation."),
+    "hod": ("ia_analysis.hod.api", "HOD statistics, assembly-biased HOD, and component-based IA-HOD modeling."),
     "visualization": ("ia_analysis.visualization.api", "Plotting, animation, and figure helpers."),
 }
 
