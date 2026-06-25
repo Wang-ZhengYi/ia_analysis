@@ -24,17 +24,23 @@ def test_subpackage_smoke_imports():
         "ia_analysis.api",
         "ia_analysis.catalogs",
         "ia_analysis.catalogs.api",
+        "ia_analysis.catalogs.analysis",
+        "ia_analysis.catalogs.hod",
         "ia_analysis.shapes",
         "ia_analysis.shapes.api",
+        "ia_analysis.shapes.evolution",
         "ia_analysis.tides",
         "ia_analysis.tides.api",
+        "ia_analysis.tides.diagnostics",
         "ia_analysis.dynamics",
         "ia_analysis.dynamics.api",
+        "ia_analysis.dynamics.orbit_shape",
         "ia_analysis.MergerTree",
         "ia_analysis.MergerTree.api",
         "ia_analysis.MergerTree.reader",
         "ia_analysis.MergerTree.workflow",
         "ia_analysis.MergerTree.storage",
+        "ia_analysis.MergerTree.diagnostics",
         "ia_analysis.correlations",
         "ia_analysis.correlations.api",
         "ia_analysis.correlations.fields",
@@ -43,10 +49,13 @@ def test_subpackage_smoke_imports():
         "ia_analysis.correlations.four_point",
         "ia_analysis.correlations.suite",
         "ia_analysis.correlations.io",
+        "ia_analysis.correlations.quality",
         "ia_analysis.meshes",
         "ia_analysis.meshes.CatMesh",
         "ia_analysis.meshes.SnapMesh",
         "ia_analysis.spectra",
+        "ia_analysis.spectra.api",
+        "ia_analysis.spectra.analysis",
         "ia_analysis.spectra.CatMesh",
         "ia_analysis.spectra.SnapMesh",
         "ia_analysis.spectra.catalog_mesh",
@@ -55,6 +64,7 @@ def test_subpackage_smoke_imports():
         "ia_analysis.covariance.api",
         "ia_analysis.pipelines",
         "ia_analysis.pipelines.api",
+        "ia_analysis.pipelines.layered_analysis",
         "ia_analysis.orbits",
         "ia_analysis.orbits.api",
         "ia_analysis.orbits.template_orbits",
@@ -82,6 +92,8 @@ def test_subpackage_smoke_imports():
         "ia_analysis.visualization.orbit_animation",
         "ia_analysis.visualization.distribution_fits",
         "ia_analysis.visualization.parallel_alignment",
+        "ia_analysis.visualization.pipeline_plots",
+        "ia_analysis.visualization.hod_plots",
         "ia_analysis.spectra.velocity_momentum",
     ]:
         importlib.import_module(name)
@@ -97,6 +109,7 @@ def test_structured_api_registries_are_lightweight_and_discoverable():
     api = importlib.import_module("ia_analysis.api")
     assert "catalogs" in api.available_domains()
     assert "merger_tree" in api.available_domains()
+    assert "spectra" in api.available_domains()
     assert "correlations" in api.available_domains()
     assert api.load_domain_api("pipelines").pipeline_module("cs-global") == "ia_analysis.pipelines.run_cs"
 

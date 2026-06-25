@@ -25,6 +25,10 @@ _EXPORTS: ExportMap = {
     "get_pipeline": ("ia_analysis.pipelines.api", "get_pipeline"),
     "pipeline_module": ("ia_analysis.pipelines.api", "pipeline_module"),
     "pipeline_command": ("ia_analysis.pipelines.api", "pipeline_command"),
+    "analyze_catalog_products": ("ia_analysis.pipelines.api", "analyze_catalog_products"),
+    "analyze_orbit_shape_suite": ("ia_analysis.pipelines.api", "analyze_orbit_shape_suite"),
+    "analyze_spectrum_products": ("ia_analysis.pipelines.api", "analyze_spectrum_products"),
+    "analyze_correlation_products": ("ia_analysis.pipelines.api", "analyze_correlation_products"),
 }
 
 __all__ = [
@@ -35,6 +39,7 @@ __all__ = [
     "run_cs",
     "run_tng",
     "tng_layered_shape_tide",
+    "layered_analysis",
 ]
 
 

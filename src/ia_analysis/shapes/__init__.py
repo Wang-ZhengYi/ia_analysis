@@ -26,9 +26,11 @@ _EXPORTS: ExportMap = {
     "measure_principal_axes": ("ia_analysis.shapes.api", "measure_principal_axes"),
     "project_shape_ellipticity": ("ia_analysis.shapes.api", "project_shape_ellipticity"),
     "project_spin_ellipticity": ("ia_analysis.shapes.api", "project_spin_ellipticity"),
+    "equilibrium_shape_from_tide": ("ia_analysis.shapes.api", "equilibrium_shape_from_tide"),
+    "evolve_shape_tensor": ("ia_analysis.shapes.api", "evolve_shape_tensor"),
 }
 
-__all__ = [*list(_EXPORTS), "api", "shape", "Iana"]
+__all__ = [*list(_EXPORTS), "api", "shape", "evolution", "Iana"]
 
 
 def __getattr__(name: str) -> Any:

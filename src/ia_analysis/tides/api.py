@@ -24,6 +24,10 @@ _EXPORTS: ExportMap = {
     "grid_potential_and_tidal": ("ia_analysis.tides.tidal_field", "grid_potential_and_tidal"),
     "PotentialInterpolator": ("ia_analysis.tides.tidal_field", "PotentialInterpolator"),
     "interpolate_potential_and_tidal": ("ia_analysis.tides.tidal_field", "interpolate_potential_and_tidal"),
+    "tidal_eigenvalues": ("ia_analysis.tides.diagnostics", "tidal_eigenvalues"),
+    "tidal_strength": ("ia_analysis.tides.diagnostics", "tidal_strength"),
+    "tidal_anisotropy": ("ia_analysis.tides.diagnostics", "tidal_anisotropy"),
+    "summarize_tidal_series": ("ia_analysis.tides.diagnostics", "summarize_tidal_series"),
 }
 
 __all__ = [
@@ -65,4 +69,3 @@ def build_tidal_grid(positions: Any, values: Any, *, source: str = "mass", **kwa
 def sample_tidal_grid(*args: Any, **kwargs: Any) -> Any:
     """Interpolate potential and tidal tensor values at one query position."""
     return call_export(_EXPORTS, "interpolate_potential_and_tidal", *args, **kwargs)
-

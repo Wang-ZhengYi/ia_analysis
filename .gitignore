@@ -3,10 +3,13 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.venv/
+.notebook_runtime/
 .coverage
 htmlcov/
 build/
 dist/
+outputs/
 _publish/
 *.egg-info/
 *.zip

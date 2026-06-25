@@ -76,14 +76,17 @@ The package is split by scientific responsibility.  Low-level modules should
 remain reusable and should not import high-level orchestration code:
 
 ```text
-catalogs / shapes / tides
-        -> dynamics / MergerTree
-        -> correlations / spectra / covariance
-        -> pipelines
+catalogs
+   -> shapes / tides
+   -> dynamics / MergerTree / orbits
+   -> spectra / correlations / covariance
+   -> visualization
 ```
 
-`visualization` and `orbits` are side modules used by notebooks and experiments.
-Heavy optional dependencies are imported only by the submodules that need them.
+`ia_analysis.pipelines` is the thin orchestration layer that may compose these
+domains. The dependency direction is enforced by
+`tests/test_layer_dependencies.py`. See
+`docs/layered_pipeline_architecture.md` for notebook-derived APIs.
 
 ## Installation
 

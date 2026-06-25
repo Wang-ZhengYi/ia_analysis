@@ -16,7 +16,9 @@ layout pass.
 ## Curated Pipeline Notebooks
 
 `pipelines/` contains the new maintained notebooks. Each notebook covers one
-workflow and points to the Python modules that now hold reusable logic.
+workflow and points to the Python modules that now hold reusable logic. They
+use the installed `Python 3.12 (py312)` kernel and can be run from either the
+repository root or the `notebooks/pipelines` directory.
 
 Recommended order:
 
@@ -39,6 +41,12 @@ Code cells from raw notebooks are exported to
 When adding new notebook code, first move reusable functions into
 `src/ia_analysis`, then keep notebooks as orchestration and visualization
 records.
+
+Each maintained workflow notebook also includes a generated legacy-function
+manifest. It lists the pipeline and plotting functions from the former
+notebooks mapped to that workflow. Use `show_legacy_source(...)` in a notebook
+to inspect a preserved definition without importing and executing the former
+notebook's top-level data-loading code.
 
 ## WSL JupyterLab
 

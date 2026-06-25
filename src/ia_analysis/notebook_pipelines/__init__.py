@@ -16,4 +16,7 @@ New production code should prefer the domain packages under ``ia_analysis`` and
 use notebook exports mainly as references.
 """
 
+from . import legacy_catalog
 
+
+__all__ = ["legacy_catalog"]

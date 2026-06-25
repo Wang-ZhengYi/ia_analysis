@@ -34,6 +34,8 @@ _GROUPS = {
     "merger_tree": "ia_analysis.visualization.merger_tree_plots",
     "orbit_animation": "ia_analysis.visualization.orbit_animation",
     "parallel_alignment": "ia_analysis.visualization.parallel_alignment",
+    "pipeline": "ia_analysis.visualization.pipeline_plots",
+    "hod": "ia_analysis.visualization.hod_plots",
     "plot_styles": "ia_analysis.visualization.plot_styles",
     "profiles": "ia_analysis.visualization.profile_plots",
     "projection_geometry": "ia_analysis.visualization.projection_geometry",
@@ -59,6 +61,11 @@ __all__ = [
     "plot_orbit_plane_evolution",
     "save_six_panel_orbit_movie",
     "save_three_panel_orbit_movie",
+    "plot_catalog_inventory",
+    "plot_orbit_shape_suite",
+    "plot_spectrum_ratios",
+    "plot_correlation_quality",
+    "plot_hod_components",
 ]
 
 
@@ -140,3 +147,28 @@ def save_six_panel_orbit_movie(*args: Any, **kwargs: Any) -> Any:
 def save_three_panel_orbit_movie(*args: Any, **kwargs: Any) -> Any:
     """Save the three-panel orbit movie through the orbit-animation facade."""
     return resolve("orbit_animation", "save_three_panel_orbit_movie")(*args, **kwargs)
+
+
+def plot_catalog_inventory(*args: Any, **kwargs: Any) -> Any:
+    """Plot global-catalog inventory diagnostics."""
+    return resolve("pipeline", "plot_catalog_inventory")(*args, **kwargs)
+
+
+def plot_orbit_shape_suite(*args: Any, **kwargs: Any) -> Any:
+    """Plot the multi-initial-condition orbit-shape suite."""
+    return resolve("pipeline", "plot_orbit_shape_suite")(*args, **kwargs)
+
+
+def plot_spectrum_ratios(*args: Any, **kwargs: Any) -> Any:
+    """Plot spectrum differences relative to a reference model."""
+    return resolve("pipeline", "plot_spectrum_ratios")(*args, **kwargs)
+
+
+def plot_correlation_quality(*args: Any, **kwargs: Any) -> Any:
+    """Plot covariance and signal-to-noise quality diagnostics."""
+    return resolve("pipeline", "plot_correlation_quality")(*args, **kwargs)
+
+
+def plot_hod_components(*args: Any, **kwargs: Any) -> Any:
+    """Plot total, central, and satellite HOD curves."""
+    return resolve("hod", "plot_hod_components")(*args, **kwargs)

@@ -35,6 +35,10 @@ _EXPORTS: ExportMap = {
     "compute_tng_halo_sample": ("ia_analysis.dynamics.api", "compute_tng_halo_sample"),
     "compute_tng_component_binding_profiles": ("ia_analysis.dynamics.api", "compute_tng_component_binding_profiles"),
     "compute_halo_component_binding_profiles": ("ia_analysis.dynamics.api", "compute_halo_component_binding_profiles"),
+    "OrbitInitialCondition": ("ia_analysis.dynamics.api", "OrbitInitialCondition"),
+    "DEFAULT_ORBIT_CASES": ("ia_analysis.dynamics.api", "DEFAULT_ORBIT_CASES"),
+    "run_orbit_shape_case": ("ia_analysis.dynamics.api", "run_orbit_shape_case"),
+    "run_orbit_shape_suite": ("ia_analysis.dynamics.api", "run_orbit_shape_suite"),
 }
 
 __all__ = [
@@ -42,6 +46,7 @@ __all__ = [
     "api",
     "halo_dynamics",
     "hd_tng",
+    "orbit_shape",
 ]
 
 
