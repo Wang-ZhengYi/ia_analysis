@@ -117,6 +117,28 @@ DEFAULT_TEMPLATE_FEATURES = (
 )
 
 
+def _trapezoid(y: np.ndarray, x: np.ndarray) -> float:
+    """Integrate with NumPy's current API while retaining older compatibility."""
+    integrate = getattr(np, "trapezoid", None)
+    if integrate is None:
+        integrate = getattr(np, "trapz")
+    return float(integrate(y, x))
+
+
+def _radial_action_proxy(radius: np.ndarray, radial_velocity: np.ndarray) -> float:
+    """Integrate ``|v_r|`` along cumulative radial path length.
+
+    This quantity is a robust orbit-shape feature for tracks whose radius can
+    reverse direction.  It is not a canonical radial action: snapshots need
+    not cover a full orbit, and no Hamiltonian phase-space integral is
+    evaluated.
+    """
+    if radius.size < 2:
+        return 0.0
+    radial_path = np.concatenate(([0.0], np.cumsum(np.abs(np.diff(radius)))))
+    return _trapezoid(np.abs(radial_velocity), radial_path)
+
+
 def _minimum_image(delta: np.ndarray, boxsize: float | Sequence[float] | None) -> np.ndarray:
     """Apply a minimum-image convention when a periodic box is supplied."""
     if boxsize is None:
@@ -176,7 +198,7 @@ def template_feature_vector(template: OrbitTemplate, keys: Sequence[str] = DEFAU
     v_radial = np.einsum("ij,ij->i", rel_vel, rhat)
     v_tangential = np.sqrt(np.maximum(v * v - v_radial * v_radial, 0.0))
     angular = np.linalg.norm(np.cross(rel_pos, rel_vel), axis=1)
-    radial_action_proxy = float(np.trapz(np.abs(v_radial), r)) if r.size > 1 else 0.0
+    radial_action_proxy = _radial_action_proxy(r, v_radial)
     values = {
         "r_final": float(r[-1]),
         "v_final": float(v[-1]),
@@ -202,7 +224,13 @@ def hod_1h_orbit_kernel(
     """Compress a template library into mean/covariance features for HOD 1h terms."""
     matrix, names = library.feature_matrix(keys=keys)
     if matrix.size == 0:
-        return {"feature_names": names, "mean": np.array([]), "cov": np.empty((0, 0)), "score": np.array([])}
+        count = len(names)
+        return {
+            "feature_names": names,
+            "mean": np.full(count, np.nan),
+            "cov": np.full((count, count), np.nan),
+            "score": np.empty(0, dtype=float),
+        }
     mean = np.nanmean(matrix, axis=0)
     centered = np.nan_to_num(matrix - mean[None, :], nan=0.0)
     cov = centered.T @ centered / max(matrix.shape[0] - 1, 1)

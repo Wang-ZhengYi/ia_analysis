@@ -17,6 +17,7 @@ Provides
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import numpy as np
@@ -39,6 +40,37 @@ class PinocchioColumnMap:
     vz: str = "vz"
     mass: str = "mass"
     scale_factor: str | None = "scale_factor"
+
+
+def read_pinocchio_table(
+    path: str | Path,
+    *,
+    format: str = "auto",
+    columns: Sequence[str] | None = None,
+) -> Any:
+    """Read a lightweight CSV or ASCII table without assuming a tree schema.
+
+    The returned pandas ``DataFrame`` can be passed directly to
+    :func:`tracks_from_table`.  ``PinocchioColumnMap`` remains responsible for
+    mapping project-specific column names to orbit fields.
+    """
+    import pandas as pd
+
+    table_path = Path(path)
+    if not table_path.is_file():
+        raise FileNotFoundError(f"Pinocchio-like table does not exist: {table_path}")
+    mode = str(format).strip().lower()
+    if mode == "auto":
+        suffix = table_path.suffix.lower()
+        mode = {".csv": "csv", ".tsv": "tsv"}.get(suffix, "ascii")
+    read_options: dict[str, Any] = {"usecols": None if columns is None else list(columns)}
+    if mode == "csv":
+        return pd.read_csv(table_path, **read_options)
+    if mode == "tsv":
+        return pd.read_csv(table_path, sep="\t", **read_options)
+    if mode in {"ascii", "txt", "whitespace"}:
+        return pd.read_csv(table_path, sep=r"\s+", comment="#", **read_options)
+    raise ValueError("format must be 'auto', 'csv', 'tsv', or 'ascii'")
 
 
 def _column(table: Any, name: str) -> np.ndarray:
@@ -144,6 +176,7 @@ def build_pinocchio_template_library(
 
 __all__ = [
     "PinocchioColumnMap",
+    "read_pinocchio_table",
     "tracks_from_table",
     "host_map_from_table",
     "build_pinocchio_template_library",

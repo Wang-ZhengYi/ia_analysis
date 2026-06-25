@@ -37,3 +37,20 @@ by the TNG loader:
 
 Prefer passing data paths through CLI flags or environment variables rather than
 editing source files.
+
+## Lightweight Pinocchio-Like Tables
+
+CSV, TSV, and whitespace-delimited ASCII orbit tables can be loaded without
+Pinocchio-specific dependencies:
+
+```python
+from ia_analysis.orbits import PinocchioColumnMap, read_pinocchio_table
+from ia_analysis.orbits.pinocchio import tracks_from_table
+
+table = read_pinocchio_table("group_tracks.csv")
+columns = PinocchioColumnMap(object_id="group_id", snapshot="snap")
+tracks = tracks_from_table(table, columns=columns)
+```
+
+The reader does not assign scientific meaning to columns. Use
+`PinocchioColumnMap` to adapt each catalog schema.
