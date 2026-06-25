@@ -18,11 +18,25 @@ Provides
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Any, Sequence
 
 import numpy as np
 
 from ia_analysis.orbits.template_orbits import OrbitTemplate, OrbitTemplateLibrary
+
+
+def _validate_orientation(orientation: np.ndarray, *, atol: float = 1.0e-7) -> np.ndarray:
+    """Return a proper orthonormal rotation matrix or raise a clear error."""
+    orient = np.asarray(orientation, dtype=float)
+    if orient.shape != (3, 3):
+        raise ValueError("`orientation` must have shape (3, 3)")
+    if not np.all(np.isfinite(orient)):
+        raise ValueError("`orientation` must contain only finite values")
+    if not np.allclose(orient.T @ orient, np.eye(3), atol=atol, rtol=atol):
+        raise ValueError("`orientation` must be approximately orthonormal")
+    if not np.isclose(np.linalg.det(orient), 1.0, atol=atol, rtol=atol):
+        raise ValueError("`orientation` must be a proper rotation with determinant +1")
+    return orient
 
 
 @dataclass(frozen=True)
@@ -37,11 +51,13 @@ class EllipsoidalGroupModel:
     def __post_init__(self) -> None:
         """Validate axes and orientation matrix."""
         axes = tuple(float(x) for x in self.axes)
-        if len(axes) != 3 or min(axes) <= 0.0:
+        if len(axes) != 3 or not np.all(np.isfinite(axes)) or min(axes) <= 0.0:
             raise ValueError("`axes` must contain three positive semi-axis lengths")
-        orient = np.asarray(self.orientation, dtype=float)
-        if orient.shape != (3, 3):
-            raise ValueError("`orientation` must have shape (3, 3)")
+        orient = _validate_orientation(self.orientation)
+        if not np.isfinite(self.mass) or float(self.mass) <= 0.0:
+            raise ValueError("`mass` must be positive and finite")
+        if not np.isfinite(self.gravitational_constant) or float(self.gravitational_constant) <= 0.0:
+            raise ValueError("`gravitational_constant` must be positive and finite")
         object.__setattr__(self, "axes", axes)
         object.__setattr__(self, "orientation", orient)
 
@@ -65,7 +81,12 @@ def ellipsoid_shape_coefficients(axes: Sequence[float], *, n_quad: int = 160) ->
     ``A_i = abc int_0^inf d tau / ((a_i^2 + tau) Delta(tau))``.
     A change of variable maps the infinite interval to [0, 1].
     """
-    a, b, c = np.asarray(axes, dtype=float)
+    axes_array = np.asarray(axes, dtype=float)
+    if axes_array.shape != (3,) or not np.all(np.isfinite(axes_array)) or np.any(axes_array <= 0.0):
+        raise ValueError("`axes` must contain three positive finite values")
+    if int(n_quad) < 8:
+        raise ValueError("`n_quad` must be at least 8")
+    a, b, c = axes_array
     nodes, weights = np.polynomial.legendre.leggauss(int(n_quad))
     u = 0.5 * (nodes + 1.0)
     w = 0.5 * weights
@@ -92,8 +113,11 @@ def homogeneous_ellipsoid_tidal_tensor(model: EllipsoidalGroupModel, *, n_quad: 
 
 def shape_tensor_from_axes(axes: Sequence[float], orientation: np.ndarray) -> np.ndarray:
     """Return a positive-definite shape tensor aligned with ``orientation``."""
-    values = np.asarray(axes, dtype=float) ** 2
-    orient = np.asarray(orientation, dtype=float)
+    axis_values = np.asarray(axes, dtype=float)
+    if axis_values.shape != (3,) or not np.all(np.isfinite(axis_values)) or np.any(axis_values <= 0.0):
+        raise ValueError("`axes` must contain three positive finite values")
+    values = axis_values**2
+    orient = _validate_orientation(orientation)
     return orient @ np.diag(values) @ orient.T
 
 
@@ -124,6 +148,8 @@ def tidal_aligned_shape(
     else:
         order = np.argsort(evals)
     orientation = evecs[:, order]
+    if np.linalg.det(orientation) < 0.0:
+        orientation[:, -1] *= -1.0
     return shape_tensor_from_axes(axis_ratios, orientation)
 
 

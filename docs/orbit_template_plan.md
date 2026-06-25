@@ -26,12 +26,14 @@ Input examples:
 Implemented starting point:
 
 - `ia_analysis.orbits.pinocchio.PinocchioColumnMap`
+- `ia_analysis.orbits.pinocchio.read_pinocchio_table`
 - `ia_analysis.orbits.pinocchio.tracks_from_table`
 - `ia_analysis.orbits.pinocchio.build_pinocchio_template_library`
 
-The adapter intentionally accepts already-loaded table-like objects.  This lets
-the project support multiple Pinocchio file layouts without hard-coding a
-single schema too early.
+The lightweight reader supports CSV, TSV, and whitespace-delimited ASCII
+tables and returns a pandas `DataFrame`. The adapter also accepts already-loaded
+table-like objects. Column meaning is always configured through
+`PinocchioColumnMap`, so the project does not hard-code one Pinocchio schema.
 
 ## Stage 2: Relative Phase-Space Templates
 
@@ -56,8 +58,12 @@ The first HOD-facing feature set includes:
 - final radial velocity
 - final tangential velocity
 - final specific angular momentum
-- radial-action proxy
+- radial-action proxy, integrated along cumulative radial path length so radius
+  reversals do not cancel
 - optional mass-loss fraction
+
+The radial-action feature is only a robust summary proxy. It is not a true
+canonical action integral and does not require a complete orbital period.
 
 ## Stage 3: Template Generation And Matching
 
@@ -90,6 +96,7 @@ layer uses a homogeneous ellipsoid approximation for the group tidal tensor.
 Implemented first approximation:
 
 - `EllipsoidalGroupModel`
+- `ellipsoid_shape_coefficients`
 - `homogeneous_ellipsoid_tidal_tensor`
 - `coherent_layer_shapes`
 - `tidal_aligned_shape`
@@ -100,6 +107,10 @@ This gives two initial shape modes:
 - `coherent`: inner and outer layers share the group orientation.
 - `tidal_aligned`: inner and outer layers align with the eigenframe of the
   ellipsoidal tidal tensor.
+
+Orientation matrices are required to be proper orthonormal rotations. The
+homogeneous-ellipsoid coefficients are numerically checked against the identity
+that their sum is two.
 
 ## Stage 5: Shape Layers
 
@@ -147,7 +158,8 @@ Future HOD parameters may include:
 ## Development Checklist
 
 1. Confirm the exact Pinocchio table outputs used in the production workflow.
-2. Add a file reader that maps those outputs into `PinocchioColumnMap`.
+2. Add format-specific preprocessing only for production outputs that cannot be
+   represented by the lightweight CSV/TSV/ASCII reader and `PinocchioColumnMap`.
 3. Generate template libraries for several mass and redshift bins.
 4. Compare template feature distributions with TNG or ClusterSims subhalo
    tracks where available.

@@ -14,7 +14,7 @@ Provides
 - Instantaneous power-law target masses for a truncated subhalo profile.
 - Delayed, irreversible mass-loss histories with a configurable stripping
   timescale.
-- Pe?arrubia-style tidal-track ratios for $Vmax$ and $rmax$ diagnostics.
+- Penarrubia-style tidal-track ratios for $Vmax$ and $rmax$ diagnostics.
 - Convenience conversion from an ``OrbitTemplate`` relative phase-space track
   to a stripping history.
 
@@ -64,7 +64,7 @@ class TidalStrippingOptions:
     tidal-track coefficients
         The ``vmax_*`` and ``rmax_*`` values define normalized tidal-track
         ratios of the form ``2^c x^s / (1+x)^c`` with ``x = M/M0``.  The
-        defaults are common Pe?arrubia-style starting values and should be
+        defaults are common Penarrubia-style starting values and should be
         recalibrated for production work.
     """
 
@@ -91,6 +91,16 @@ class TidalStrippingOptions:
             raise ValueError("tau_orbits must be positive")
         if not (0.0 < float(self.minimum_bound_fraction) <= 1.0):
             raise ValueError("minimum_bound_fraction must be in (0, 1]")
+        if not isinstance(self.irreversible, (bool, np.bool_)):
+            raise ValueError("irreversible must be a boolean")
+        coefficients = (
+            self.vmax_slope,
+            self.vmax_curvature,
+            self.rmax_slope,
+            self.rmax_curvature,
+        )
+        if not np.all(np.isfinite(coefficients)):
+            raise ValueError("tidal-track coefficients must be finite")
 
     def updated(self, **kwargs: Any) -> "TidalStrippingOptions":
         """Return a copy with selected option values replaced."""
@@ -310,7 +320,12 @@ def build_stripping_history(
     options: TidalStrippingOptions | None = None,
     gravitational_constant: float = G_KPC_KMS2_PER_MSUN,
 ) -> TidalStrippingHistory:
-    """Build an instantaneous or delayed tidal-stripping history."""
+    """Build an instantaneous or delayed semi-analytic stripping history.
+
+    This is a controlled approximation for orbit-template experiments, not a
+    calibrated universal subhalo stripping law.  With ``irreversible=True``,
+    the returned bound mass is guaranteed to be monotonic non-increasing.
+    """
     opts = options or TidalStrippingOptions()
     opts.validate()
 

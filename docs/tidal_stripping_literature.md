@@ -19,8 +19,8 @@ notebook and explains how it should be upgraded for calibrated HOD work.
   gradually modified structure rather than an instantly truncated sphere.
   <https://arxiv.org/abs/astro-ph/0203004>
 
-- Penarrubia, Navarro & McConnachie, *The Tidal Evolution of Local Group Dwarf
-  Spheroidals*, and Penarrubia et al., *The impact of dark matter cusps and
+- Peñarrubia, Navarro & McConnachie, *The Tidal Evolution of Local Group Dwarf
+  Spheroidals*, and Peñarrubia et al., *The impact of dark matter cusps and
   cores on the satellite galaxy population around spiral galaxies*, motivate
   tidal tracks where structural quantities such as $V_\mathrm{max}$ and
   $r_\mathrm{max}$ are functions of the retained bound mass fraction.
@@ -59,7 +59,7 @@ The model has three layers.
    $\tau_\mathrm{strip} = N_\mathrm{orb} T_\mathrm{orb}$.  This prevents a
    single noisy near-pericentre sample from removing too much mass instantly.
 
-3. A Pe?arrubia-style tidal-track helper converts the retained mass fraction
+3. A Peñarrubia et al.-inspired tidal-track helper converts the retained mass fraction
    into approximate $V_\mathrm{max}$ and $r_\mathrm{max}$ ratios.  The default
    coefficients are intended for demonstrations and should be calibrated before
    scientific production runs.
