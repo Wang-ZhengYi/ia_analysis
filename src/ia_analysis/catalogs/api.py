@@ -28,6 +28,14 @@ _EXPORTS: ExportMap = {
     "LegacyTNGCatalog": ("ia_analysis.catalogs.catalog_loader", "TNGCatalog"),
     "hdf5_chunk_sort_key": ("ia_analysis.catalogs.catalog_loader", "_hdf5_chunk_sort_key"),
     "tng_hdf5_chunk_sort_key": ("ia_analysis.catalogs.TNGCatLoader", "_hdf5_chunk_sort_key"),
+    "parse_catalog_identity": ("ia_analysis.catalogs.analysis", "parse_catalog_identity"),
+    "summarize_catalog_file": ("ia_analysis.catalogs.analysis", "summarize_catalog_file"),
+    "inventory_catalogs": ("ia_analysis.catalogs.analysis", "inventory_catalogs"),
+    "normalize_host_indices": ("ia_analysis.catalogs.hod", "normalize_host_indices"),
+    "occupation_counts": ("ia_analysis.catalogs.hod", "occupation_counts"),
+    "binned_hod": ("ia_analysis.catalogs.hod", "binned_hod"),
+    "add_environment_quantiles": ("ia_analysis.catalogs.hod", "add_environment_quantiles"),
+    "binned_hod_by_environment": ("ia_analysis.catalogs.hod", "binned_hod_by_environment"),
 }
 
 __all__ = [

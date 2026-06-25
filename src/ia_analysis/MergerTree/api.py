@@ -40,6 +40,10 @@ _EXPORTS: ExportMap = {
     ),
     "save_cross_time_products": ("ia_analysis.MergerTree.storage", "save_cross_time_products"),
     "load_cross_time_products": ("ia_analysis.MergerTree.storage", "load_cross_time_products"),
+    "product_tables": ("ia_analysis.MergerTree.diagnostics", "product_tables"),
+    "combine_product_tables": ("ia_analysis.MergerTree.diagnostics", "combine_product_tables"),
+    "summarize_numeric_table": ("ia_analysis.MergerTree.diagnostics", "summarize_numeric_table"),
+    "pi_closure_residuals": ("ia_analysis.MergerTree.diagnostics", "pi_closure_residuals"),
 }
 
 __all__ = [*export_names(_EXPORTS), "load_track", "run_workflow"]
@@ -58,4 +62,3 @@ def load_track(*args: Any, **kwargs: Any) -> Any:
 def run_workflow(*args: Any, **kwargs: Any) -> dict[str, Any]:
     """Run the standard cross-time workflow."""
     return call_export(_EXPORTS, "run_cross_time_workflow", *args, **kwargs)
-

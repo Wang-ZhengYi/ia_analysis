@@ -42,6 +42,8 @@ _EXPORTS: ExportMap = {
     "jackknife_covariance": ("ia_analysis.correlations.api", "jackknife_covariance"),
     "bootstrap_covariance": ("ia_analysis.correlations.api", "bootstrap_covariance"),
     "write_results_hdf5": ("ia_analysis.correlations.api", "write_results_hdf5"),
+    "covariance_diagnostics": ("ia_analysis.correlations.api", "covariance_diagnostics"),
+    "summarize_correlation_quality": ("ia_analysis.correlations.api", "summarize_correlation_quality"),
 }
 
 __all__ = [
@@ -53,6 +55,7 @@ __all__ = [
     "four_point",
     "suite",
     "io",
+    "quality",
 ]
 
 

@@ -27,9 +27,13 @@ _EXPORTS: ExportMap = {
     "build_sampled_tidal_grid": ("ia_analysis.tides.api", "build_sampled_tidal_grid"),
     "build_tidal_grid": ("ia_analysis.tides.api", "build_tidal_grid"),
     "sample_tidal_grid": ("ia_analysis.tides.api", "sample_tidal_grid"),
+    "tidal_eigenvalues": ("ia_analysis.tides.api", "tidal_eigenvalues"),
+    "tidal_strength": ("ia_analysis.tides.api", "tidal_strength"),
+    "tidal_anisotropy": ("ia_analysis.tides.api", "tidal_anisotropy"),
+    "summarize_tidal_series": ("ia_analysis.tides.api", "summarize_tidal_series"),
 }
 
-__all__ = [*list(_EXPORTS), "api", "tidal_field"]
+__all__ = [*list(_EXPORTS), "api", "tidal_field", "diagnostics"]
 
 
 def __getattr__(name: str) -> Any:

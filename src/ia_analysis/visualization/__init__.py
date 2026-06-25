@@ -41,6 +41,11 @@ _EXPORTS: ExportMap = {
     "plot_orbit_plane_evolution": ("ia_analysis.visualization.api", "plot_orbit_plane_evolution"),
     "save_six_panel_orbit_movie": ("ia_analysis.visualization.api", "save_six_panel_orbit_movie"),
     "save_three_panel_orbit_movie": ("ia_analysis.visualization.api", "save_three_panel_orbit_movie"),
+    "plot_catalog_inventory": ("ia_analysis.visualization.api", "plot_catalog_inventory"),
+    "plot_orbit_shape_suite": ("ia_analysis.visualization.api", "plot_orbit_shape_suite"),
+    "plot_spectrum_ratios": ("ia_analysis.visualization.api", "plot_spectrum_ratios"),
+    "plot_correlation_quality": ("ia_analysis.visualization.api", "plot_correlation_quality"),
+    "plot_hod_components": ("ia_analysis.visualization.api", "plot_hod_components"),
 }
 
 __all__ = [
@@ -58,6 +63,8 @@ __all__ = [
     "merger_tree_plots",
     "orbit_animation",
     "parallel_alignment",
+    "pipeline_plots",
+    "hod_plots",
     "plot_styles",
     "profile_plots",
     "projection_geometry",

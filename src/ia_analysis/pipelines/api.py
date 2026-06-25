@@ -18,6 +18,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from ia_analysis._lazy_imports import ExportMap, export_names, load_export
+
+_EXPORTS: ExportMap = {
+    "analyze_catalog_products": ("ia_analysis.pipelines.layered_analysis", "analyze_catalog_products"),
+    "analyze_orbit_shape_suite": ("ia_analysis.pipelines.layered_analysis", "analyze_orbit_shape_suite"),
+    "analyze_spectrum_products": ("ia_analysis.pipelines.layered_analysis", "analyze_spectrum_products"),
+    "analyze_correlation_products": ("ia_analysis.pipelines.layered_analysis", "analyze_correlation_products"),
+}
+
 
 @dataclass(frozen=True)
 class PipelineEntrypoint:
@@ -67,6 +76,7 @@ _PIPELINES = {
 }
 
 __all__ = [
+    *export_names(_EXPORTS),
     "PipelineEntrypoint",
     "list_pipelines",
     "describe_pipelines",
@@ -74,6 +84,11 @@ __all__ = [
     "pipeline_module",
     "pipeline_command",
 ]
+
+
+def __getattr__(name: str):
+    """Resolve layered analysis entrypoints lazily."""
+    return load_export(_EXPORTS, name)
 
 
 def list_pipelines() -> tuple[str, ...]:
@@ -103,4 +118,3 @@ def pipeline_module(name: str) -> str:
 def pipeline_command(name: str, python: str = "python") -> tuple[str, str, str]:
     """Return the recommended ``python -m`` command tuple for one pipeline."""
     return get_pipeline(name).command(python=python)
-

@@ -39,6 +39,11 @@ _EXPORTS: ExportMap = {
     "jackknife_covariance": ("ia_analysis.correlations.covariance", "jackknife_covariance"),
     "bootstrap_covariance": ("ia_analysis.correlations.covariance", "bootstrap_covariance"),
     "write_results_hdf5": ("ia_analysis.correlations.io", "write_results_hdf5"),
+    "discover_correlation_files": ("ia_analysis.correlations.quality", "discover_correlation_files"),
+    "covariance_diagnostics": ("ia_analysis.correlations.quality", "covariance_diagnostics"),
+    "signal_to_noise": ("ia_analysis.correlations.quality", "signal_to_noise"),
+    "inspect_correlation_file": ("ia_analysis.correlations.quality", "inspect_correlation_file"),
+    "summarize_correlation_quality": ("ia_analysis.correlations.quality", "summarize_correlation_quality"),
 }
 
 __all__ = [*export_names(_EXPORTS), "measure_suite"]

@@ -33,9 +33,15 @@ _EXPORTS: ExportMap = {
     "open_cluster_catalog": ("ia_analysis.catalogs.api", "open_cluster_catalog"),
     "open_tng_catalog": ("ia_analysis.catalogs.api", "open_tng_catalog"),
     "sort_hdf5_chunks": ("ia_analysis.catalogs.api", "sort_hdf5_chunks"),
+    "parse_catalog_identity": ("ia_analysis.catalogs.api", "parse_catalog_identity"),
+    "summarize_catalog_file": ("ia_analysis.catalogs.api", "summarize_catalog_file"),
+    "inventory_catalogs": ("ia_analysis.catalogs.api", "inventory_catalogs"),
+    "occupation_counts": ("ia_analysis.catalogs.api", "occupation_counts"),
+    "binned_hod": ("ia_analysis.catalogs.api", "binned_hod"),
+    "binned_hod_by_environment": ("ia_analysis.catalogs.api", "binned_hod_by_environment"),
 }
 
-__all__ = [*list(_EXPORTS), "api", "catalog_loader", "TNGCatLoader"]
+__all__ = [*list(_EXPORTS), "api", "analysis", "hod", "catalog_loader", "TNGCatLoader"]
 
 
 def __getattr__(name: str) -> Any:

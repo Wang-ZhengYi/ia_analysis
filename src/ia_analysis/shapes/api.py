@@ -40,6 +40,12 @@ _EXPORTS: ExportMap = {
     "epsilon_from_spin": ("ia_analysis.shapes.Iana", "epsilon_from_spin"),
     "estimate_kappa_rot_from_subhalo": ("ia_analysis.shapes.Iana", "estimate_kappa_rot_from_subhalo"),
     "fit_enfw_profile": ("ia_analysis.shapes.Iana", "fit_enfw_profile"),
+    "sorted_eigh_symmetric": ("ia_analysis.shapes.evolution", "sorted_eigh_symmetric"),
+    "project_spd": ("ia_analysis.shapes.evolution", "project_spd"),
+    "acute_axis_angle_deg": ("ia_analysis.shapes.evolution", "acute_axis_angle_deg"),
+    "equilibrium_shape_from_tide": ("ia_analysis.shapes.evolution", "equilibrium_shape_from_tide"),
+    "angular_frequency_gyr_inverse": ("ia_analysis.shapes.evolution", "angular_frequency_gyr_inverse"),
+    "evolve_shape_tensor": ("ia_analysis.shapes.evolution", "evolve_shape_tensor"),
 }
 
 __all__ = [
@@ -79,4 +85,3 @@ def project_shape_ellipticity(*args: Any, **kwargs: Any) -> Any:
 def project_spin_ellipticity(*args: Any, **kwargs: Any) -> Any:
     """Project spin vectors to IA ellipticity components."""
     return call_export(_EXPORTS, "epsilon_from_spin", *args, **kwargs)
-
