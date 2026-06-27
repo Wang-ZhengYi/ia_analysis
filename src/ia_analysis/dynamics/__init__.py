@@ -20,6 +20,26 @@ from typing import Any
 from ia_analysis._lazy_imports import ExportMap, load_export
 
 _EXPORTS: ExportMap = {
+    "SnapshotTarget": ("ia_analysis.dynamics.api", "SnapshotTarget"),
+    "analyze_snapshot_target": ("ia_analysis.dynamics.api", "analyze_snapshot_target"),
+    "measure_target_shape": ("ia_analysis.dynamics.api", "measure_target_shape"),
+    "measure_target_principal_axes": ("ia_analysis.dynamics.api", "measure_target_principal_axes"),
+    "measure_target_kinematics": ("ia_analysis.dynamics.api", "measure_target_kinematics"),
+    "measure_figure_rotation": ("ia_analysis.dynamics.api", "measure_figure_rotation"),
+    "measure_affine_figure_rotation": ("ia_analysis.dynamics.api", "measure_affine_figure_rotation"),
+    "measure_hessian_omega": ("ia_analysis.dynamics.api", "measure_hessian_omega"),
+    "measure_target_binding": ("ia_analysis.dynamics.api", "measure_target_binding"),
+    "measure_component_binding_profiles": ("ia_analysis.dynamics.api", "measure_component_binding_profiles"),
+    "measure_target_shell_dynamics": ("ia_analysis.dynamics.api", "measure_target_shell_dynamics"),
+    "measure_tidal_response": ("ia_analysis.dynamics.api", "measure_tidal_response"),
+    "symmetrize_matrix": ("ia_analysis.dynamics.api", "symmetrize_matrix"),
+    "sorted_eigensystem": ("ia_analysis.dynamics.api", "sorted_eigensystem"),
+    "measure_shape_tensor": ("ia_analysis.dynamics.api", "measure_shape_tensor"),
+    "measure_mixed_moment": ("ia_analysis.dynamics.api", "measure_mixed_moment"),
+    "measure_moment_derivative": ("ia_analysis.dynamics.api", "measure_moment_derivative"),
+    "coerce_tidal_hessian": ("ia_analysis.dynamics.api", "coerce_tidal_hessian"),
+    "tidal_hessian_from_components": ("ia_analysis.dynamics.api", "tidal_hessian_from_components"),
+    "tidal_stretch_eigensystem": ("ia_analysis.dynamics.api", "tidal_stretch_eigensystem"),
     "make_shell_masks": ("ia_analysis.dynamics.api", "make_shell_masks"),
     "component_binding_energy": ("ia_analysis.dynamics.api", "component_binding_energy"),
     "binding_energy_mass_distribution": ("ia_analysis.dynamics.api", "binding_energy_mass_distribution"),
@@ -40,6 +60,11 @@ _EXPORTS: ExportMap = {
 __all__ = [
     *list(_EXPORTS),
     "api",
+    "shape_measurements",
+    "kinematics",
+    "dynamics_measurements",
+    "matrix_analysis",
+    "snapshot_analysis",
     "halo_dynamics",
     "hd_tng",
 ]

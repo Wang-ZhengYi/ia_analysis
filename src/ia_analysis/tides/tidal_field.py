@@ -33,6 +33,9 @@ from numba import njit, set_num_threads
 # expression is T_ij(k) = + i k_j A_i(k) for the legacy=True convention.
 # This keeps mass-derived, potential-derived, and acceleration-derived tidal
 # tensors on the same sign convention and in the same units.
+# The physical stretching tensor is -T for legacy_tidal_sign=True, so downstream
+# major-axis alignment code should diagonalize -T when it needs the largest
+# stretching direction.
 
 # =========================
 # Low-level: CIC assignment

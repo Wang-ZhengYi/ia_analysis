@@ -69,3 +69,8 @@ measurement = measure_hod(catalog, mass_bins=mass_edges, sample_label="LRG")
 
 See `docs/hod.md` for assembly, phase-space, IA-component, fitting, plotting,
 and serialization examples.
+
+The complete notebook workflow is
+`notebooks/pipelines/09_full_hod_ia_workflow.ipynb`. It defaults to a synthetic
+catalog, uses the `py312` kernel, and writes tables, HDF5 measurements, figures,
+and a product inventory under `notebooks/pipelines/outputs/full_hod_ia_workflow`.
