@@ -15,9 +15,15 @@ NEW (minimal change)
   Neff comes from ShapeKin variance stage:
       Neff = 1 / sum(w_i^2)
 - Add Tidal_self to the HDF5 output.
-- Tidal_grp is target-exclusive, Tidal_tot is inclusive, and Tidal_self is
-  computed from the target object's own all-type particles after the self-shape
-  selection. TNG has no MG/fifth-force branch, so Tidal_tot_mg is not written.
+- Final tidal outputs are the available TNG analysis branches:
+    Tidal_self : target object's own selected matter under GR/Newtonian gravity
+    Tidal_tot  : inclusive GR potential-derived tensor
+    Tidal_grp  : group matter tensor with the target object's own matter removed
+  TNG has no MG/fifth-force acceleration branch, so Tidal_tot_mg is not written.
+- All tidal tensors use cfg["legacy_tidal_sign"].  With the default
+  legacy_tidal_sign=True, files store the Hessian convention
+  T_ij = +d_i d_j Phi.  The physical largest-stretching direction is the major
+  eigenvector of -T.
 - Add optional IllustrisTNG API-backed downloading through TNGCatalog.
   Existing local-file usage is unchanged.  If local files are missing, pass
   --api-key or set the TNG_API_KEY environment variable.
@@ -54,9 +60,9 @@ HDF5 catalog layout (run_tng.py output; columnar arrays, N = number of selected 
 ├── Group_R_Crit200           (N,)        float64
 │
 ├── Tidal/                    (group)
-│   ├── Tidal_grp             (N,3,3)     float64   # host/group mass tidal with target self removed
-│   ├── Tidal_tot             (N,3,3)     float64   # inclusive potential-derived tidal
-│   └── Tidal_self            (N,3,3)     float64   # target self tidal from selected all-type particles
+│   ├── Tidal_self            (N,3,3)     float64   # target object's own matter, GR/Newtonian mass-potential branch
+│   ├── Tidal_tot             (N,3,3)     float64   # inclusive GR potential-derived branch
+│   └── Tidal_grp             (N,3,3)     float64   # host/group matter branch, target self removed
 │
 ├── DM/                       (group)
 │   ├── I                     (N,3,3)     float64
@@ -118,6 +124,22 @@ import h5py
 
 from ia_analysis.catalogs.TNGCatLoader import TNGCatalog
 from ia_analysis.pipelines.global_tng import compute_many
+
+
+TIDAL_SIGN_CONVENTION = "legacy_hessian:+d_i d_j Phi"
+TIDAL_STRETCHING_CONVENTION = "largest_stretching_axis=eigvec_max(-dataset)"
+TIDAL_UNITS = "km^2/s^2/(ckpc/h)^2"
+
+
+def _create_tidal_dataset(parent, name, data, *, source, input_branch, target_exclusive):
+    ds = parent.create_dataset(name, data=data)
+    ds.attrs["source"] = source
+    ds.attrs["input_branch"] = input_branch
+    ds.attrs["target_exclusive"] = bool(target_exclusive)
+    ds.attrs["sign_convention"] = TIDAL_SIGN_CONVENTION
+    ds.attrs["stretching_convention"] = TIDAL_STRETCHING_CONVENTION
+    ds.attrs["units"] = TIDAL_UNITS
+    return ds
 
 TNG_BASE_PATH = "/cosma8/data/dp203/dc-wang17/TNG/tng_data"
 TNG_SNAP = 99
@@ -501,9 +523,32 @@ def _write_results_hdf5_columnar(out_path, results, cfg, tng_catalog_kwargs=None
         gST.create_dataset("converged", data=ST_conv)
 
         gT = f.create_group("Tidal")
-        gT.create_dataset("Tidal_grp", data=T_grp)
-        gT.create_dataset("Tidal_tot", data=T_tot)
-        gT.create_dataset("Tidal_self", data=T_self)
+        gT.attrs["has_mg_acceleration_branch"] = False
+        gT.attrs["missing_mg_reason"] = "TNG has no MG/fifth-force acceleration field."
+        _create_tidal_dataset(
+            gT,
+            "Tidal_self",
+            T_self,
+            source="target object's own selected matter under GR/Newtonian gravity",
+            input_branch="mass_to_potential",
+            target_exclusive=False,
+        )
+        _create_tidal_dataset(
+            gT,
+            "Tidal_tot",
+            T_tot,
+            source="inclusive GR potential samples",
+            input_branch="potential_to_tidal",
+            target_exclusive=False,
+        )
+        _create_tidal_dataset(
+            gT,
+            "Tidal_grp",
+            T_grp,
+            source="host/group matter with target object's own matter removed",
+            input_branch="mass_to_potential",
+            target_exclusive=True,
+        )
 
 
 def main():

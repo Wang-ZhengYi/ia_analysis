@@ -284,6 +284,7 @@ Maintained notebooks live in `notebooks/pipelines`:
 - `06_tng_dynamics_layered_pipeline.ipynb`
 - `07_orbits_and_shell_visualization.ipynb`
 - `08_orbit_template_tidal_stripping_demo.ipynb`
+- `09_full_hod_ia_workflow.ipynb`
 
 Raw notebook exports are kept under `src/ia_analysis/notebook_pipelines/exports`
 for review and gradual migration into reusable modules.  New reusable plotting

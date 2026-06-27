@@ -33,6 +33,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse, FancyArrowPatch
 from matplotlib.lines import Line2D
 
+from ia_analysis.visualization.DWE import DimrothWatson
+
 try:
     import seaborn as sns
 except Exception:  # pragma: no cover
@@ -48,6 +50,9 @@ MASET: Dict[str, Dict[str, dict]] = {}
 FLAGS: List[str] = []
 ZMAP: Dict[int, float] = {}
 SNAP_LIST: List[int] = []
+_TENSOR_AXES_CACHE: Dict[Tuple[int, Tuple[int, ...], str], np.ndarray] = {}
+_PROFILE_CACHE: Dict[Tuple[Any, ...], Any] = {}
+_DWE_MODEL = None
 
 # Common ClusterSims snapshot redshifts.  If your MArenew.pkl stores a different
 # z-map, pass it through set_alignment_context(...).
@@ -172,6 +177,13 @@ def set_alignment_context(
         ZMAP = {int(s): ZMAP_ALL.get(int(s), np.nan) for s in SNAP_LIST}
     else:
         ZMAP = {int(k): float(v) for k, v in zmap.items()}
+    clear_alignment_caches()
+
+
+def clear_alignment_caches() -> None:
+    """Clear cached tensor eigenvectors and binned alignment profiles."""
+    _TENSOR_AXES_CACHE.clear()
+    _PROFILE_CACHE.clear()
 
 
 def _infer_snap_list(MAset: Dict[str, Dict[str, dict]], flags: Sequence[str]) -> List[int]:
@@ -266,6 +278,17 @@ def _standardize_ma_keys(MA: dict) -> dict:
                 out[dst] = out[src]
                 return
 
+    def row_nanmax_abs(values):
+        arr = np.asarray(values, dtype=float)
+        if arr.ndim <= 1:
+            return np.abs(arr)
+        finite = np.isfinite(arr)
+        result = np.full(arr.shape[0], np.nan, dtype=float)
+        rows = np.any(finite, axis=tuple(range(1, arr.ndim)))
+        if np.any(rows):
+            result[rows] = np.nanmax(np.abs(arr[rows]), axis=tuple(range(1, arr.ndim)))
+        return result
+
     # Position/velocity aliases.
     alias("R", "pos_rel", "SubhaloPosRel", "r_rel")
     alias("V", "vel_rel", "SubhaloVelRel", "v_rel")
@@ -294,19 +317,26 @@ def _standardize_ma_keys(MA: dict) -> dict:
 
     # Historical scalar quality cuts often use max cos_err per object.
     if "cos_err_max_Star" not in out and "cos_err_Star" in out:
-        ce = np.asarray(out["cos_err_Star"], dtype=float)
-        out["cos_err_max_Star"] = np.nanmax(np.abs(ce), axis=1) if ce.ndim == 2 else np.abs(ce)
+        out["cos_err_max_Star"] = row_nanmax_abs(out["cos_err_Star"])
     if "cos_err_max_DM" not in out and "cos_err_DM" in out:
-        ce = np.asarray(out["cos_err_DM"], dtype=float)
-        out["cos_err_max_DM"] = np.nanmax(np.abs(ce), axis=1) if ce.ndim == 2 else np.abs(ce)
+        out["cos_err_max_DM"] = row_nanmax_abs(out["cos_err_DM"])
 
-    # Tidal tensor aliases.  The three physical classes are:
+    # Tidal tensor aliases.  Catalogues store the legacy Hessian convention
+    # T_ij = +d_i d_j Phi; use stretch_tidal_tensor() for the physical
+    # stretching tensor whose major axis is the largest stretching direction.
+    # The four final output branches are:
+    #   T_self : target object's own selected matter under GR/Newtonian gravity
     #   T_GR   : standard GR/Newtonian total tidal tensor
     #   T_grp  : group/intra-halo matter tidal tensor
-    #   T_MG   : GR+MG total tidal tensor, if available
-    alias("T_grp", "Tidal_grp", "T_group", "Tidal_group")
-    alias("T_GR", "Tidal_GR", "T_GR", "Tidal_tot", "T_tot")
-    alias("T_MG", "Tidal_GRMG", "Tidal_tot_mg", "Tidal_tot_MG", "T_GRMG", "Tidal_MG", "T_MG")
+    #   T_MG_extra : MG/fifth-force acceleration tidal tensor
+    # T_MG remains the backward-compatible GR+MG total tensor.
+    alias("T_self", "Tidal_self", "Tidal/Tidal_self", "T_self")
+    alias("T_grp", "Tidal_grp", "Tidal/Tidal_grp", "T_group", "Tidal_group")
+    alias("T_GR", "Tidal_GR", "Tidal/Tidal_tot", "T_GR", "Tidal_tot", "T_tot")
+    alias("T_MG_extra", "Tidal_tot_mg", "Tidal/Tidal_tot_mg", "T_MG_extra", "T_MG_only")
+    alias("T_MG", "Tidal_GRMG", "Tidal_tot_MG", "T_GRMG", "Tidal_MG", "T_MG")
+    if "T_MG" not in out and "T_MG_extra" in out and "T_GR" in out:
+        out["T_MG"] = _as_array(out["T_GR"], dtype=float) + _as_array(out["T_MG_extra"], dtype=float)
     # If this is a GR/TNG-only file with no explicit GR+MG tensor, use T_GR as a harmless fallback.
     if "T_MG" not in out and "T_GR" in out:
         out["T_MG"] = out["T_GR"]
@@ -724,19 +754,34 @@ def tensor_axes(T: Any) -> np.ndarray:
     Output shape is (N, 3, 3), where output[:, 0, :] is the major-axis vector,
     output[:, 1, :] the intermediate-axis vector, and output[:, 2, :] the minor-axis vector.
     """
+    source = T
     T = _as_array(T, dtype=float)
     if T.ndim == 2:
         T = T[None, ...]
+    cache_key = (id(source), tuple(T.shape), str(T.dtype))
+    cached = _TENSOR_AXES_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     n = T.shape[0]
     axes = np.full((n, 3, 3), np.nan, dtype=float)
     good = np.isfinite(T).all(axis=(1, 2))
-    for i in np.where(good)[0]:
+    if np.any(good):
         try:
-            w, v = np.linalg.eigh(0.5 * (T[i] + T[i].T))
-            order = np.argsort(w)[::-1]
-            axes[i] = v[:, order].T
+            Tsym = 0.5 * (T[good] + np.swapaxes(T[good], -1, -2))
+            w, v = np.linalg.eigh(Tsym)
+            order = np.argsort(w, axis=1)[:, ::-1]
+            v_sorted = np.take_along_axis(v, order[:, None, :], axis=2)
+            axes[good] = np.swapaxes(v_sorted, 1, 2)
         except Exception:
-            continue
+            for out_i, in_i in enumerate(np.where(good)[0]):
+                try:
+                    w, v = np.linalg.eigh(0.5 * (T[in_i] + T[in_i].T))
+                    order = np.argsort(w)[::-1]
+                    axes[in_i] = v[:, order].T
+                except Exception:
+                    continue
+    _TENSOR_AXES_CACHE[cache_key] = axes
     return axes
 
 
@@ -775,14 +820,41 @@ def I_dm(MA: dict) -> np.ndarray:
 
 
 def tidal_tensor(MA: dict, kind: str) -> np.ndarray:
-    """Return one of the three allowed tidal tensor families."""
+    """Return one legacy tidal Hessian family.
+
+    The returned catalog convention is T_ij = +d_i d_j Phi.  Its most negative
+    eigenvalue is the strongest physical stretching direction.  Use
+    stretch_tidal_tensor() when selecting tidal major axes for alignments.
+    """
+    if kind in {"self", "target", "T_self"}:
+        return _as_array(get_field(MA, ["T_self", "Tidal_self", "Tidal/Tidal_self"]), dtype=float)
     if kind == "GR":
-        return _as_array(get_field(MA, ["T_GR", "Tidal_GR", "Tidal_tot"]), dtype=float)
+        return _as_array(get_field(MA, ["T_GR", "Tidal_GR", "Tidal/Tidal_tot", "Tidal_tot"]), dtype=float)
     if kind == "group":
-        return _as_array(get_field(MA, ["T_grp", "Tidal_grp", "T_group", "Tidal_group"]), dtype=float)
+        return _as_array(get_field(MA, ["T_grp", "Tidal_grp", "Tidal/Tidal_grp", "T_group", "Tidal_group"]), dtype=float)
+    if kind in {"MG", "MG_extra", "fifth_force", "mg"}:
+        return _as_array(get_field(MA, ["T_MG_extra", "Tidal_tot_mg", "Tidal/Tidal_tot_mg", "T_MG_only"]), dtype=float)
     if kind in {"GRMG", "GR+MG", "total"}:
-        return _as_array(get_field(MA, ["T_MG", "Tidal_tot", "T_total", "T_tot"]), dtype=float)
+        direct = maybe_field(MA, ["T_MG", "Tidal_GRMG", "Tidal_tot_MG", "T_GRMG", "Tidal_MG"], default=None)
+        if direct is not None:
+            return _as_array(direct, dtype=float)
+        mg_extra = maybe_field(MA, ["T_MG_extra", "Tidal_tot_mg", "Tidal/Tidal_tot_mg"], default=None)
+        gr = maybe_field(MA, ["T_GR", "Tidal_GR", "Tidal/Tidal_tot", "Tidal_tot", "T_total", "T_tot"], default=None)
+        if mg_extra is not None and gr is not None:
+            return _as_array(gr, dtype=float) + _as_array(mg_extra, dtype=float)
+        if gr is not None:
+            return _as_array(gr, dtype=float)
     raise ValueError(f"Unknown tidal tensor kind: {kind}")
+
+
+def stretch_tidal_tensor(MA: dict, kind: str) -> np.ndarray:
+    """Return the physical stretching tensor for tidal-axis alignments.
+
+    Pipeline catalogues use the legacy Hessian convention T_ij = +d_i d_j Phi.
+    The stretching tensor is -T, so tensor_axes(stretch_tidal_tensor(...))[0]
+    is the largest stretching direction.
+    """
+    return -tidal_tensor(MA, kind)
 
 
 def R_vec(MA: dict) -> np.ndarray:
@@ -844,7 +916,8 @@ def baryon_dm_ratio(MA: dict, log: bool = True, include_bh: bool = False) -> np.
     dm = m[:, 1] if m.ndim == 2 and m.shape[1] > 1 else np.nan
     star = m[:, 4] if m.ndim == 2 and m.shape[1] > 4 else 0.0
     bh = m[:, 5] if include_bh and m.ndim == 2 and m.shape[1] > 5 else 0.0
-    ratio = (gas + star + bh) / dm
+    denom = np.where(np.isfinite(dm) & (dm > 0), dm, np.nan)
+    ratio = (gas + star + bh) / denom
     ratio = np.where(np.isfinite(ratio) & (ratio > 0), ratio, np.nan)
     return safe_log10(ratio) if log else ratio
 
@@ -981,6 +1054,7 @@ class AlignmentSpec:
     schematic_components: Tuple[str, ...] = ("central",)
     schematic_title: str | None = None
     logx: bool = False
+    logy: bool = False
 
 
 def _x_specs() -> Dict[str, Tuple[Callable[[dict], np.ndarray], str, Tuple[float, float], int, Tuple[float, float] | None]]:
@@ -1025,11 +1099,11 @@ def _make_shape_radial_func(shape: str, axis: str) -> Callable[[dict], np.ndarra
 
 def _make_tidal_shape_func(tidal_kind: str, shape: str, axis: str) -> Callable[[dict], np.ndarray]:
     Tfunc = _shape_tensor(shape)
-    return lambda MA: tensor_tensor_alignment(-tidal_tensor(MA, tidal_kind), Tfunc(MA), "major", axis)
+    return lambda MA: tensor_tensor_alignment(stretch_tidal_tensor(MA, tidal_kind), Tfunc(MA), "major", axis)
 
 
 def _make_tidal_radial_func(tidal_kind: str) -> Callable[[dict], np.ndarray]:
-    return lambda MA: vector_tensor_alignment(R_vec(MA), -tidal_tensor(MA, tidal_kind), "major")
+    return lambda MA: vector_tensor_alignment(R_vec(MA), stretch_tidal_tensor(MA, tidal_kind), "major")
 
 
 def build_alignment_specs() -> List[AlignmentSpec]:
@@ -1050,6 +1124,7 @@ def build_alignment_specs() -> List[AlignmentSpec]:
                 xfunc=xfunc,
                 xlabel=xlabel,
                 xlim=xlim,
+                ylim=(0.4, 1.0),
                 bins=bins,
                 sample_xrange=sample_xrange,
                 err_field=None,
@@ -1066,6 +1141,7 @@ def build_alignment_specs() -> List[AlignmentSpec]:
                 xfunc=xfunc,
                 xlabel=xlabel,
                 xlim=xlim,
+                ylim=(0.4, 1.0),
                 bins=bins,
                 sample_xrange=sample_xrange,
                 err_field=None,
@@ -1076,6 +1152,8 @@ def build_alignment_specs() -> List[AlignmentSpec]:
 
     # Radial alignments.
     for xname, (xfunc, xlabel, xlim, bins, sample_xrange) in xs.items():
+        radial_loglog = xname == "R"
+        radial_ylim = (0.4, 1.0) if radial_loglog else (0.0, 1.0)
         for axis in axes:
             axlab = _AXIS_LABEL[axis]
             specs.append(AlignmentSpec(
@@ -1087,10 +1165,13 @@ def build_alignment_specs() -> List[AlignmentSpec]:
                 xfunc=xfunc,
                 xlabel=xlabel,
                 xlim=xlim,
+                ylim=radial_ylim,
                 bins=bins,
                 sample_xrange=sample_xrange,
                 schematic_components=("position_vector", "satellite", "satellite_axis"),
                 schematic_title="Satellite radial alignment",
+                logx=radial_loglog,
+                logy=False,
             ))
             specs.append(AlignmentSpec(
                 name=f"SubDMRadial_{xname}_{axis}",
@@ -1101,10 +1182,13 @@ def build_alignment_specs() -> List[AlignmentSpec]:
                 xfunc=xfunc,
                 xlabel=xlabel,
                 xlim=xlim,
+                ylim=radial_ylim,
                 bins=bins,
                 sample_xrange=sample_xrange,
                 schematic_components=("position_vector", "subhalo", "subhalo_axis"),
                 schematic_title="Subhalo radial alignment",
+                logx=radial_loglog,
+                logy=False,
             ))
             specs.append(AlignmentSpec(
                 name=f"Vel_StarAxis_{xname}_{axis}",
@@ -1328,13 +1412,96 @@ def binned_profile(x, y, mask=None, bins=10, xlim=None, min_count=3, statistic="
         if n < min_count:
             continue
         vals = y[m]
-        if statistic == "median":
+        if statistic in {"dwe_mu", "mu", "dimroth_watson_mu"}:
+            yy[i], ee[i] = fit_dwe_mu(vals)
+        elif statistic == "median":
             yy[i] = np.nanmedian(vals)
             ee[i] = 1.253 * np.nanstd(vals) / np.sqrt(n)
         else:
             yy[i] = np.nanmean(vals)
             ee[i] = np.nanstd(vals) / np.sqrt(n)
     return centers, yy, ee, nn
+
+
+def _dwe_model():
+    global _DWE_MODEL
+    if _DWE_MODEL is None:
+        _DWE_MODEL = DimrothWatson()
+    return _DWE_MODEL
+
+
+def fit_dwe_mu(sample, *, symmetrize=True, bounds=(-500, 500), max_iter=5000):
+    """Fit the Dimroth-Watson distribution and return (mu, mu_error)."""
+    vals = np.asarray(sample, dtype=float).ravel()
+    vals = vals[np.isfinite(vals) & (np.abs(vals) <= 1.0)]
+    if vals.size == 0:
+        return np.nan, np.nan
+    if symmetrize:
+        vals = np.r_[vals, -vals]
+    try:
+        out = _dwe_model().fit(vals, bounds=bounds, max_iter=max_iter)
+        return float(out.get("mu", np.nan)), float(out.get("mu_error", np.nan))
+    except Exception:
+        return np.nan, np.nan
+
+
+def _cacheable_tuple(value):
+    if value is None:
+        return None
+    if np.isscalar(value):
+        try:
+            return float(value)
+        except Exception:
+            return str(value)
+    arr = np.asarray(value)
+    if arr.ndim == 0:
+        return float(arr)
+    return tuple(float(v) for v in arr.ravel())
+
+
+def get_binned_alignment_profile(
+    spec: AlignmentSpec,
+    flag: str,
+    snap: int,
+    min_count: int = 3,
+    verbose: bool = False,
+    statistic: str = "dwe_mu",
+):
+    """Return one cached binned alignment profile for a spec/model/snapshot curve."""
+    xlim_for_bins = spec.sample_xrange if spec.sample_xrange is not None else spec.xlim
+    key = (
+        spec.name,
+        str(flag),
+        int(snap),
+        _cacheable_tuple(spec.xlim),
+        _cacheable_tuple(spec.sample_xrange),
+        _cacheable_tuple(spec.bins),
+        _cacheable_tuple(spec.err_max),
+        int(min_count),
+        str(statistic),
+    )
+    if key in _PROFILE_CACHE:
+        return _PROFILE_CACHE[key]
+    if _snap_key(snap) not in MASET.get(flag, {}):
+        _PROFILE_CACHE[key] = None
+        return None
+    try:
+        MA, x, mu, mask = get_alignment_arrays(spec, flag, snap)
+        out = binned_profile(
+            x,
+            mu,
+            mask=mask,
+            bins=spec.bins,
+            xlim=xlim_for_bins,
+            min_count=min_count,
+            statistic=statistic,
+        )
+    except Exception as exc:
+        if verbose:
+            print(f"[skip] {spec.name} {flag} snap={snap:03d}: {exc}")
+        out = None
+    _PROFILE_CACHE[key] = out
+    return out
 
 
 def plot_alignment_on_axis(
@@ -1351,16 +1518,7 @@ def plot_alignment_on_axis(
     min_count: int = 3,
     verbose: bool = False,
 ):
-    if _snap_key(snap) not in MASET.get(flag, {}):
-        return None
-    try:
-        MA, x, mu, mask = get_alignment_arrays(spec, flag, snap)
-        xlim_for_bins = spec.sample_xrange if spec.sample_xrange is not None else spec.xlim
-        out = binned_profile(x, mu, mask=mask, bins=spec.bins, xlim=xlim_for_bins, min_count=min_count)
-    except Exception as exc:
-        if verbose:
-            print(f"[skip] {spec.name} {flag} snap={snap:03d}: {exc}")
-        return None
+    out = get_binned_alignment_profile(spec, flag, snap, min_count=min_count, verbose=verbose)
     if out is None:
         if verbose:
             print(f"[skip] {spec.name} {flag} snap={snap:03d}: too few valid objects")
@@ -1387,9 +1545,64 @@ def apply_alignment_axis_format(ax, spec: AlignmentSpec) -> None:
         ax.set_ylim(*spec.ylim)
     if spec.logx:
         ax.set_xscale("log")
+    if spec.logy:
+        ax.set_yscale("log")
     ax.set_xlabel(spec.xlabel)
-    ax.set_ylabel(r"$\langle |\cos\theta| \rangle$")
+    ax.set_ylabel(r"Dimroth-Watson $\mu$")
     ax.grid(alpha=0.18)
+
+
+def _profile_y_values(profile, include_error=True):
+    if profile is None:
+        return np.array([], dtype=float)
+    _xc, yy, ee, _nn = profile
+    vals = [np.asarray(yy, dtype=float)]
+    if include_error:
+        vals.append(np.asarray(yy, dtype=float) - np.asarray(ee, dtype=float))
+        vals.append(np.asarray(yy, dtype=float) + np.asarray(ee, dtype=float))
+    out = np.concatenate([v.ravel() for v in vals])
+    return out[np.isfinite(out)]
+
+
+def _adaptive_ylim_from_profiles(profile_list, *, logy=False, floor=None):
+    arrays = [_profile_y_values(profile) for profile in profile_list if profile is not None]
+    arrays = [arr for arr in arrays if arr.size > 0]
+    vals = np.concatenate(arrays) if arrays else np.array([], dtype=float)
+    vals = vals[np.isfinite(vals)]
+    if logy:
+        vals = vals[vals > 0]
+    if vals.size == 0:
+        return None
+    lo = float(np.nanpercentile(vals, 2))
+    hi = float(np.nanpercentile(vals, 98))
+    if not np.isfinite(lo) or not np.isfinite(hi) or hi <= lo:
+        lo = float(np.nanmin(vals))
+        hi = float(np.nanmax(vals))
+    if not np.isfinite(lo) or not np.isfinite(hi):
+        return None
+    if hi <= lo:
+        pad = 0.05 * abs(hi) if hi != 0 else 0.05
+        lo -= pad
+        hi += pad
+    elif logy:
+        lo *= 0.92
+        hi *= 1.08
+    else:
+        pad = 0.08 * (hi - lo)
+        lo -= pad
+        hi += pad
+    if floor is not None and not logy:
+        lo = max(floor, lo)
+    return lo, hi
+
+
+def _apply_adaptive_ylim(axes, profile_list, *, logy=False):
+    ylim = _adaptive_ylim_from_profiles(profile_list, logy=logy)
+    if ylim is None:
+        return
+    for ax in axes:
+        if ax.get_visible():
+            ax.set_ylim(*ylim)
 
 
 def _model_legend_handles(flags_to_use):
@@ -1462,6 +1675,14 @@ def plot_alignment_snapshot_grid(
         ax.set_title(rf"$z={z:.2f}$  (snap={int(snap):03d})")
         apply_alignment_axis_format(ax, spec)
 
+    snapshot_profiles = [
+        get_binned_alignment_profile(spec, flag, snap, min_count=min_count)
+        for flag in flags_to_use
+        for snap in snap_list
+        if _snap_key(snap) in MASET.get(flag, {})
+    ]
+    _apply_adaptive_ylim(data_axes, snapshot_profiles, logy=spec.logy)
+
     first_empty = (1 + len(snap_list)) if use_schematic else len(snap_list)
     if first_empty < len(axes):
         _draw_model_legend_in_axis(axes[first_empty], flags_to_use)
@@ -1469,10 +1690,10 @@ def plot_alignment_snapshot_grid(
             ax.axis("off")
     else:
         fig.legend(handles=_model_legend_handles(flags_to_use), loc="upper center", ncol=min(len(flags_to_use), 7), frameon=False,
-                   bbox_to_anchor=(0.5, 0.985))
+                   bbox_to_anchor=(0.5, 0.925), borderaxespad=0.0)
 
     fig.suptitle(spec.title, fontsize=17, weight="bold", y=0.985)
-    fig.tight_layout(rect=(0.02, 0.04, 0.98, 0.94), w_pad=2.0, h_pad=2.1)
+    fig.tight_layout(rect=(0.02, 0.04, 0.98, 0.875), w_pad=2.0, h_pad=2.1)
     _save_figure(fig, "alignment_snapshot_grids", f"{spec.name}_snapshot_grid.png", save=save)
     if show:
         plt.show()
@@ -1525,9 +1746,12 @@ def plot_alignment_redshift_evolution(
     cmap = plt.get_cmap(cmap_name)
 
     for ax, flag in zip(axes[1:1 + n_model], flags_to_use):
+        model_profiles = []
         for snap, z in zip(snap_list, zvals):
             if _snap_key(snap) not in MASET.get(flag, {}):
                 continue
+            profile = get_binned_alignment_profile(spec, flag, snap, min_count=min_count)
+            model_profiles.append(profile)
             plot_alignment_on_axis(
                 spec, ax, flag, snap, label=rf"$z={z:.2f}$", color=cmap(norm(z)),
                 alpha=0.92, lw=1.7, error_style=error_style, error_alpha=error_alpha,
@@ -1535,6 +1759,7 @@ def plot_alignment_redshift_evolution(
             )
         ax.set_title(flag_label(flag), color=flag_color(flag), weight="bold")
         apply_alignment_axis_format(ax, spec)
+        _apply_adaptive_ylim([ax], model_profiles, logy=spec.logy)
 
     cbar_index = 1 + n_model
     if cbar_index < len(axes):

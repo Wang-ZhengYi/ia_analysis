@@ -47,10 +47,10 @@ HDF5 catalog layout (run_cs.py output; columnar arrays, N = number of selected s
 ├── Group_R_Crit500           (N,)        float64
 ├── Group_R_Crit200           (N,)        float64
 │
-├── Tidal_grp                 (N,3,3)     float64   # host/group mass tidal with target self particles removed
-├── Tidal_tot                 (N,3,3)     float64   # inclusive GR-acceleration tidal
-├── Tidal_tot_mg              (N,3,3)     float64   # inclusive MG/fifth-force acceleration tidal
-├── Tidal_self                (N,3,3)     float64   # target self tidal from selected all-type particles
+├── Tidal_self                (N,3,3)     float64   # target object's own matter, GR/Newtonian mass-potential branch
+├── Tidal_tot                 (N,3,3)     float64   # inclusive GR acceleration branch
+├── Tidal_grp                 (N,3,3)     float64   # host/group matter branch, target self particles removed
+├── Tidal_tot_mg              (N,3,3)     float64   # inclusive MG/fifth-force acceleration branch
 │
 ├── DM/                       (group)
 │   ├── I                     (N,3,3)     float64
@@ -98,8 +98,15 @@ NEW (minimal change)
 - Tidal_grp is target-exclusive, while Tidal_tot and Tidal_tot_mg remain
   inclusive. Tidal_self is computed from the target object's own all-type
   particles after the self-shape selection.
-- All tidal tensors use the same sign convention from cfg["legacy_tidal_sign"]
-  and are written in the same units: km^2/s^2/(ckpc/h)^2.
+- Final tidal outputs are the four analysis branches:
+    Tidal_self    : target object's own selected matter under GR/Newtonian gravity
+    Tidal_tot     : inclusive GR acceleration-derived tensor
+    Tidal_grp     : group matter tensor with the target object's own matter removed
+    Tidal_tot_mg  : inclusive MG/fifth-force acceleration-derived tensor
+- All tidal tensors use cfg["legacy_tidal_sign"].  With the default
+  legacy_tidal_sign=True, files store the Hessian convention
+  T_ij = +d_i d_j Phi.  The physical largest-stretching direction is the major
+  eigenvector of -T.
 """
 
 
@@ -136,6 +143,22 @@ import h5py
 
 from ia_analysis.catalogs.catalog_loader import CSCatalog
 from ia_analysis.pipelines.global_cs import compute_many
+
+
+TIDAL_SIGN_CONVENTION = "legacy_hessian:+d_i d_j Phi"
+TIDAL_STRETCHING_CONVENTION = "largest_stretching_axis=eigvec_max(-dataset)"
+TIDAL_UNITS = "km^2/s^2/(ckpc/h)^2"
+
+
+def _create_tidal_dataset(parent, name, data, *, source, input_branch, target_exclusive):
+    ds = parent.create_dataset(name, data=data)
+    ds.attrs["source"] = source
+    ds.attrs["input_branch"] = input_branch
+    ds.attrs["target_exclusive"] = bool(target_exclusive)
+    ds.attrs["sign_convention"] = TIDAL_SIGN_CONVENTION
+    ds.attrs["stretching_convention"] = TIDAL_STRETCHING_CONVENTION
+    ds.attrs["units"] = TIDAL_UNITS
+    return ds
 
 
 # -----------------------
@@ -531,10 +554,38 @@ def _write_results_hdf5(
             for k, v in Star.items():
                 gst.create_dataset(k, data=v)
 
-            f.create_dataset("Tidal_grp", data=Tidal_grp)
-            f.create_dataset("Tidal_tot", data=Tidal_tot)
-            f.create_dataset("Tidal_tot_mg", data=Tidal_tot_mg)
-            f.create_dataset("Tidal_self", data=Tidal_self)
+            _create_tidal_dataset(
+                f,
+                "Tidal_self",
+                Tidal_self,
+                source="target object's own selected matter under GR/Newtonian gravity",
+                input_branch="mass_to_potential",
+                target_exclusive=False,
+            )
+            _create_tidal_dataset(
+                f,
+                "Tidal_tot",
+                Tidal_tot,
+                source="inclusive GR acceleration field",
+                input_branch="acceleration_to_tidal",
+                target_exclusive=False,
+            )
+            _create_tidal_dataset(
+                f,
+                "Tidal_grp",
+                Tidal_grp,
+                source="host/group matter with target object's own matter removed",
+                input_branch="mass_to_potential",
+                target_exclusive=True,
+            )
+            _create_tidal_dataset(
+                f,
+                "Tidal_tot_mg",
+                Tidal_tot_mg,
+                source="inclusive MG/fifth-force acceleration field",
+                input_branch="acceleration_to_tidal",
+                target_exclusive=False,
+            )
 
         # Move the completed temporary file into place only after h5py closed it.
         if overwrite:
