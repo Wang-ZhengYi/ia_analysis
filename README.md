@@ -123,14 +123,15 @@ For WSL Anaconda/JupyterLab orbit notebooks, use the maintained conda files and
 launcher:
 
 ```bash
-cd /mnt/c/Users/hydro/Workspace/MSTA
+cd /mnt/c/Users/<your-user>/Workspace/ia_analysis
 bash tools/wsl_jupyter_orbits.sh
 ```
 
 This creates the `ia-orbits` environment, registers the `Python (ia-orbits)`
 kernel, and starts JupyterLab at the project root.  Use
 `requirements/orbits-full-conda.yml` when full `pyccl` orbit integration is
-needed.
+needed. From outside the project root, invoke the launcher with its correct
+relative or absolute path.
 
 ## Configuration And Data Paths
 
