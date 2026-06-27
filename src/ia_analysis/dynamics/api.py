@@ -21,6 +21,40 @@ from typing import Any
 from ia_analysis._lazy_imports import ExportMap, call_export, export_names, load_export
 
 _EXPORTS: ExportMap = {
+    "SnapshotTarget": ("ia_analysis.dynamics.snapshot_analysis", "SnapshotTarget"),
+    "analyze_snapshot_target": ("ia_analysis.dynamics.snapshot_analysis", "analyze_snapshot_target"),
+    "measure_target_shape": ("ia_analysis.dynamics.shape_measurements", "measure_target_shape"),
+    "measure_target_principal_axes": (
+        "ia_analysis.dynamics.shape_measurements",
+        "measure_target_principal_axes",
+    ),
+    "measure_target_kinematics": ("ia_analysis.dynamics.kinematics", "measure_target_kinematics"),
+    "measure_figure_rotation": ("ia_analysis.dynamics.kinematics", "measure_figure_rotation"),
+    "measure_affine_figure_rotation": (
+        "ia_analysis.dynamics.kinematics",
+        "measure_affine_figure_rotation",
+    ),
+    "measure_hessian_omega": ("ia_analysis.dynamics.kinematics", "measure_hessian_omega"),
+    "measure_target_binding": ("ia_analysis.dynamics.dynamics_measurements", "measure_target_binding"),
+    "measure_component_binding_profiles": (
+        "ia_analysis.dynamics.dynamics_measurements",
+        "measure_component_binding_profiles",
+    ),
+    "measure_target_shell_dynamics": (
+        "ia_analysis.dynamics.dynamics_measurements",
+        "measure_target_shell_dynamics",
+    ),
+    "measure_tidal_response": ("ia_analysis.dynamics.dynamics_measurements", "measure_tidal_response"),
+    "symmetrize_matrix": ("ia_analysis.dynamics.matrix_analysis", "symmetrize_matrix"),
+    "sorted_eigensystem": ("ia_analysis.dynamics.matrix_analysis", "sorted_eigensystem"),
+    "measure_shape_tensor": ("ia_analysis.dynamics.matrix_analysis", "measure_shape_tensor"),
+    "measure_mixed_moment": ("ia_analysis.dynamics.matrix_analysis", "measure_mixed_moment"),
+    "measure_moment_derivative": ("ia_analysis.dynamics.matrix_analysis", "measure_moment_derivative"),
+    "coerce_tidal_hessian": ("ia_analysis.dynamics.matrix_analysis", "coerce_tidal_hessian"),
+    "tidal_hessian_from_components": ("ia_analysis.dynamics.matrix_analysis", "tidal_hessian_from_components"),
+    "tidal_stretch_eigensystem": ("ia_analysis.dynamics.matrix_analysis", "tidal_stretch_eigensystem"),
+    "matrix_torque_from_hessian": ("ia_analysis.dynamics.matrix_analysis", "torque_from_hessian"),
+    "matrix_stack_shell_quantity": ("ia_analysis.dynamics.matrix_analysis", "stack_shell_quantity"),
     "make_shell_masks": ("ia_analysis.dynamics.halo_dynamics", "make_shell_masks"),
     "radial_shell_masks": ("ia_analysis.dynamics.halo_dynamics", "radial_shell_masks"),
     "binding_energy_shell_masks": ("ia_analysis.dynamics.halo_dynamics", "binding_energy_shell_masks"),
